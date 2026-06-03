@@ -2,18 +2,19 @@ require('dotenv').config();
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: String(process.env.DB_PASSWORD || ''),
-  database: process.env.DB_NAME,
+  // Use the single connection string Render provides
+  connectionString: process.env.DATABASE_URL,
+  // This is the CRITICAL part for Render
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('DB connection failed:', err.message);
+    console.error('DB connection failed:', err.stack);
   } else {
-    console.log('Database connected!');
+    console.log('Database connected successfully!');
     release();
   }
 });
