@@ -1,0 +1,103 @@
+<div class="rapports-shell">
+
+  <!-- Header -->
+  <div class="rapports-header">
+    <div>
+      <span class="page-badge">{{ isAdmin() ? 'Administrator' : 'Team Leader' }}</span>
+      <h1>{{ isAdmin() ? 'Reports Management' : 'Reports' }}</h1>
+      <p class="page-subtitle">{{ isAdmin() ? 'Review and validate reports from team leaders' : 'Report incidents or absences to administrators' }}</p>
+    </div>
+    <button *ngIf="!isAdmin()" class="toggle-btn" (click)="showForm = !showForm">
+      {{ showForm ? '✕ Cancel' : '+ New Report' }}
+    </button>
+  </div>
+
+  <!-- Create Form -->
+  <div *ngIf="showForm && !isAdmin()" class="form-card">
+    <h3 class="form-title">Create a Report</h3>
+    <form [formGroup]="form" (ngSubmit)="createRapport()" class="rapport-form">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Agent *</label>
+          <select formControlName="agent_id" class="form-select">
+            <option value="">Select an agent</option>
+            <option *ngFor="let agent of agents" [value]="agent.id">
+              {{ agent.agent_nom || (agent.nom + ' ' + agent.prenom) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Report Type *</label>
+          <select formControlName="type" class="form-select">
+            <option value="incident">⚠️ Incident</option>
+            <option value="absence">❌ Unjustified Absence</option>
+            <option value="sante">🏥 Health Issue</option>
+            <option value="autre">📝 Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input type="date" formControlName="date" class="form-input" />
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label">Report Details *</label>
+        <textarea
+          formControlName="contenu"
+          class="form-textarea"
+          placeholder="Describe the incident or absence in detail..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary-btn" [disabled]="loading || !form.valid">
+          {{ loading ? 'Sending...' : 'Send Report' }}
+        </button>
+        <button type="button" class="secondary-btn" (click)="showForm = false">
+          Cancel
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Reports list -->
+  <div class="list-card">
+    <div class="list-header">
+      <h2>{{ isAdmin() ? 'All Reports' : 'My Reports' }} <span class="count-badge">{{ rapports.length }}</span></h2>
+    </div>
+
+    <div *ngIf="rapports.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p>No reports found</p>
+      <button *ngIf="!isAdmin()" class="primary-btn small" (click)="showForm = true">Create First Report</button>
+    </div>
+
+    <div *ngFor="let rapport of rapports" class="rapport-item">
+      <div class="rapport-top">
+        <div>
+          <strong class="rapport-type">{{ getTypeLabel(rapport.type) }}</strong>
+          <span class="rapport-agent">Agent: {{ rapport.agent_nom }}</span>
+          <span *ngIf="rapport.site_nom" class="rapport-site">• {{ rapport.site_nom }}</span>
+          <span *ngIf="isAdmin() && rapport.chef_nom" class="rapport-chef">• Reported by: {{ rapport.chef_nom }}</span>
+          <span *ngIf="isAdmin() && rapport.chef_site_nom" class="rapport-site">• Site: {{ rapport.chef_site_nom }}</span>
+        </div>
+        <span class="status-pill" [style.background]="getStatusColor(rapport.statut)">
+          {{ rapport.statut === 'pending' ? 'Pending' : rapport.statut === 'approved' ? 'Approved' : rapport.statut }}
+        </span>
+      </div>
+      <p class="rapport-contenu">{{ rapport.contenu }}</p>
+      <div class="rapport-footer">
+        <span>📅 {{ rapport.date | date: 'dd/MM/yyyy' }}</span>
+        <span *ngIf="rapport.valide_par_nom">✅ Validated by {{ rapport.valide_par_nom }}</span>
+        <button *ngIf="isAdmin() && rapport.statut === 'pending'" class="primary-btn small" (click)="validateRapport(rapport.id)">
+          Validate Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,112 @@
+<div style="padding:2rem; max-width:520px; margin:0 auto">
+
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem">
+    <a routerLink="/agents" class="btn-icon">← Back</a>
+    <div>
+      <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">{{ isEdit ? 'Edit Agent' : 'Add Agent' }}</h1>
+      <p style="color:#94a3b8; font-size:13px; margin-top:2px">{{ isEdit ? 'Update agent information' : 'Register a new security agent' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()"
+    style="background:rgba(15,23,42,0.8); padding:1.5rem; border-radius:12px; border:1px solid rgba(148,163,184,0.12)">
+
+    <!-- NOM -->
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">
+        Last Name <span style="color:#ef4444">*</span>
+      </label>
+      <input formControlName="nom" type="text" placeholder="Ex: Ben Ali"
+        [style.border]="(isRequired('nom') || hasError('nom','lettersOnly')) ? '1px solid #ef4444 !important' : ''">
+      <div *ngIf="isRequired('nom')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ Last name is required.
+      </div>
+      <div *ngIf="hasError('nom','lettersOnly')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ Last name must contain only letters.
+      </div>
+    </div>
+
+    <!-- PRENOM -->
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">
+        First Name <span style="color:#ef4444">*</span>
+      </label>
+      <input formControlName="prenom" type="text" placeholder="Ex: Karim"
+        [style.border]="(isRequired('prenom') || hasError('prenom','lettersOnly')) ? '1px solid #ef4444 !important' : ''">
+      <div *ngIf="isRequired('prenom')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ First name is required.
+      </div>
+      <div *ngIf="hasError('prenom','lettersOnly')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ First name must contain only letters.
+      </div>
+    </div>
+
+    <!-- MATRICULE -->
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">
+        ID <span style="color:#ef4444">*</span>
+      </label>
+      <input formControlName="matricule" type="text" placeholder="Ex: 100234"
+        [style.border]="(isRequired('matricule') || hasError('matricule','numbersOnly')) ? '1px solid #ef4444 !important' : ''">
+      <div *ngIf="isRequired('matricule')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ ID is required.
+      </div>
+      <div *ngIf="hasError('matricule','numbersOnly')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ ID must contain only numbers.
+      </div>
+    </div>
+
+    <!-- TELEPHONE -->
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">
+        Phone
+      </label>
+      <input formControlName="telephone" type="text" placeholder="Ex: 98123456 (8 digits)"
+        [style.border]="(hasError('telephone','numbersOnly') || hasError('telephone','phone8digits')) ? '1px solid #ef4444 !important' : ''">
+      <div *ngIf="hasError('telephone','numbersOnly')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ Phone must contain only numbers.
+      </div>
+      <div *ngIf="hasError('telephone','phone8digits')" style="color:#ef4444; font-size:12px; margin-top:4px">
+        ⚠ Phone number must contain exactly 8 digits.
+      </div>
+    </div>
+
+    <!-- TYPE DE COMPTE -->
+    <div *ngIf="!isEdit" style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">
+        Account Type <span style="color:#ef4444">*</span>
+      </label>
+      <select formControlName="account_role">
+        <option value="agent">Regular Agent</option>
+        <option *ngIf="isAdmin()" value="chef_equipe">Team Leader</option>
+      </select>
+      <div *ngIf="isChef()" style="color:#94a3b8; font-size:12px; margin-top:6px; padding:8px; background:rgba(148,163,184,0.1); border-radius:6px; border:1px solid rgba(148,163,184,0.12)">
+        🔒 New agents will be automatically assigned to your site(s).
+      </div>
+    </div>
+
+    <!-- STATUT -->
+    <div style="margin-bottom:1.5rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Status</label>
+      <select formControlName="statut">
+        <option value="actif">Active</option>
+        <option value="inactif">Inactive</option>
+      </select>
+    </div>
+
+    <div *ngIf="error" style="color:#ef4444; font-size:13px; margin-bottom:1rem; padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px">
+      {{ error }}
+    </div>
+
+    <div style="display:flex; gap:1rem">
+      <button type="submit" [disabled]="loading"
+        style="padding:10px 24px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3); border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; transition:all 0.2s">
+        {{ loading ? 'Saving...' : (isEdit ? 'Update' : 'Add Agent') }}
+      </button>
+      <a routerLink="/agents"
+        style="padding:10px 24px; background:rgba(51,65,85,0.4); color:#94a3b8; text-decoration:none; border-radius:8px; font-size:14px; display:inline-flex; align-items:center; border:1px solid rgba(148,163,184,0.12)">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>

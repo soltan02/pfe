@@ -1,0 +1,107 @@
+<div class="dashboard-shell">
+  <section class="hero-card">
+    <div class="hero-header">
+      <div class="hero-title">
+        <span class="hero-badge">Team Leader</span>
+        <h1>Hello, {{ user?.nom || 'Team Leader' }}</h1>
+        <p>{{ todayLabel }}</p>
+      </div>
+      <div class="hero-summary">
+        <div class="summary-item">
+          <div class="summary-value">{{ teamStats.agentsCount }}</div>
+          <div class="summary-label">Team Agents</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ teamStats.activeAffectations }}</div>
+          <div class="summary-label">Active Assignments</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ teamStats.pendingAffectations }}</div>
+          <div class="summary-label">Pending Assignments</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-layout">
+    <article class="panel team-overview">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Team Management</p>
+          <h2>Overview</h2>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Active Agents</div>
+          <div class="stat-value">{{ teamStats.agentsCount }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Assignments</div>
+          <div class="stat-value">{{ teamStats.activeAffectations }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value pending">{{ teamStats.pendingAffectations }}</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/affectations" class="primary-button">Manage Assignments</button>
+        <button routerLink="/team-management" class="secondary-button">View Team</button>
+      </div>
+    </article>
+
+    <article class="panel team-agents">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Team</p>
+          <h2>Agents</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && teamAgents.length === 0" class="empty-state">
+        <p>No agents</p>
+      </div>
+      <div *ngIf="!loading && teamAgents.length > 0" class="agents-list">
+        <div *ngFor="let agent of teamAgents" class="agent-item">
+          <div class="agent-info">
+            <strong>{{ agent.nom }}</strong>
+            <span class="agent-role">{{ agent.specialite || 'Generalist' }}</span>
+          </div>
+          <div class="agent-status">
+            <span class="status-dot"></span>
+            <small>On Duty</small>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/agents" class="secondary-button">View All Agents</button>
+      </div>
+    </article>
+
+    <article class="panel quick-links">
+      <div class="panel-header">
+        <p class="panel-subtitle">Quick Access</p>
+        <h2>Navigation</h2>
+      </div>
+      <div class="links-grid">
+        <a routerLink="/pointage" class="link-button">
+          <span class="icon">📋</span>
+          <span class="text">Attendance</span>
+        </a>
+        <a routerLink="/rapports" class="link-button">
+          <span class="icon">📝</span>
+          <span class="text">Reports</span>
+        </a>
+        <a routerLink="/team-management" class="link-button">
+          <span class="icon">👥</span>
+          <span class="text">My Team</span>
+        </a>
+        <a routerLink="/agents" class="link-button">
+          <span class="icon">➕</span>
+          <span class="text">Add Agent</span>
+        </a>
+      </div>
+    </article>
+  </section>
+</div>

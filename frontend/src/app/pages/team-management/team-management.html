@@ -1,0 +1,70 @@
+<div class="team-shell">
+  <div class="team-header">
+    <div class="back-button">
+      <button routerLink="/dashboard" class="btn-icon">← Back</button>
+    </div>
+    <div class="header-content">
+      <h1>Team Management</h1>
+      <p class="subtitle">{{ teamStats.activeAgents }} agents</p>
+    </div>
+    <div class="header-actions">
+      <button routerLink="/agents/new" class="btn-primary">+ New Agent</button>
+    </div>
+  </div>
+
+  <!-- Team Statistics -->
+  <section class="stats-section">
+    <div class="stat-card">
+      <div class="stat-label">Active Agents</div>
+      <div class="stat-value">{{ teamStats.activeAgents }}</div>
+    </div>
+  </section>
+
+  <!-- Team Agents List -->
+  <section class="team-content">
+    <div class="agents-card">
+      <h2>Team Agents</h2>
+      
+      <div *ngIf="loading" class="loading">Loading...</div>
+      
+      <div *ngIf="!loading && teamAgents.length === 0" class="empty-state">
+        <p>No agents in the team</p>
+      </div>
+
+      <div *ngIf="!loading && teamAgents.length > 0" class="agents-grid">
+        <div *ngFor="let agent of teamAgents" 
+             class="agent-card" 
+             [class.selected]="selectedAgent?.id === agent.id"
+             (click)="selectAgent(agent)">
+          <div class="agent-header">
+            <div class="agent-avatar">{{ agent.nom.charAt(0).toUpperCase() }}</div>
+            <div class="agent-info">
+              <h3>{{ agent.nom }}</h3>
+              <p class="agent-email">{{ agent.email }}</p>
+            </div>
+            <span class="status-indicator">🟢 {{ getAgentStatus(agent) }}</span>
+          </div>
+
+          <div class="agent-details" *ngIf="selectedAgent?.id === agent.id">
+            <div class="detail-row">
+              <span class="label">Email</span>
+              <span class="value">{{ agent.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Phone</span>
+              <span class="value">{{ agent.telephone || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Status</span>
+              <span class="value">Active</span>
+            </div>
+            <div class="agent-actions">
+              <button [routerLink]="['/agents/edit', agent.id]" class="btn-edit">✏️ Edit</button>
+              <button routerLink="/affectations" class="btn-assign">📋 Assignments</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,135 @@
+<div class="dashboard-shell">
+  <section class="hero-card">
+    <div class="hero-header">
+      <div class="hero-title">
+        <span class="hero-badge">STB Security</span>
+        <h1>Hello, {{ user?.nom || 'User' }}</h1>
+        <p>{{ todayLabel }}</p>
+      </div>
+      <div class="hero-summary">
+        <div class="summary-item">
+          <div class="summary-value">{{ formatCount(stats.agents) }}</div>
+          <div class="summary-label">Active assignments</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ formatCount(stats.sites) }}</div>
+          <div class="summary-label">Days present this month</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ formatCount(stats.affectations) }}</div>
+          <div class="summary-label">Pending requests</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-tabs">
+      <button *ngFor="let tab of roleTabs" class="role-tab" [class.active]="tab === currentRoleLabel">
+        {{ tab }}
+      </button>
+    </div>
+  </section>
+
+  <section class="grid-layout">
+    <article class="panel planning-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">My schedule today</p>
+          <h2>STB Headquarters</h2>
+        </div>
+        <span class="status-pill present">Present</span>
+      </div>
+      <div class="meta-row">
+        <div><span>Hours</span><strong>08:00 — 16:00</strong></div>
+        <div><span>Status</span><strong>Present</strong></div>
+      </div>
+      <div class="action-row">
+        <button class="primary-button">Clock in</button>
+        <button class="secondary-button">Clock out</button>
+      </div>
+    </article>
+
+    <article class="panel attendance-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Attendance — June 2026</p>
+          <h2>Attendance</h2>
+        </div>
+      </div>
+      <div class="presence-grid">
+        <div class="week-day">M</div>
+        <div class="week-day">T</div>
+        <div class="week-day">W</div>
+        <div class="week-day">T</div>
+        <div class="week-day">F</div>
+        <div class="week-day">S</div>
+        <div class="week-day">S</div>
+
+        <div class="presence-day present">M</div>
+        <div class="presence-day present">T</div>
+        <div class="presence-day present">W</div>
+        <div class="presence-day present">T</div>
+        <div class="presence-day absent">F</div>
+        <div class="presence-day inactive">S</div>
+        <div class="presence-day inactive">S</div>
+      </div>
+      <div class="presence-legend">
+        <span class="legend present">Present</span>
+        <span class="legend absent">Absent</span>
+        <span class="legend late">Late</span>
+      </div>
+    </article>
+
+    <article class="panel request-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">New request</p>
+          <h2>Annual leave</h2>
+        </div>
+      </div>
+      <form class="request-form">
+        <label>
+          Request type
+          <select>
+            <option>Annual leave</option>
+            <option>Request</option>
+            <option>Report</option>
+          </select>
+        </label>
+        <div class="date-row">
+          <label>
+            Start date
+            <input type="date" />
+          </label>
+          <label>
+            End date
+            <input type="date" />
+          </label>
+        </div>
+        <button type="button" class="primary-button">Submit request</button>
+      </form>
+    </article>
+
+    <article class="panel report-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Submit a report</p>
+          <h2>Security incident</h2>
+        </div>
+      </div>
+      <form class="report-form">
+        <label>
+          Type
+          <select>
+            <option>Security incident</option>
+            <option>Report</option>
+          </select>
+        </label>
+        <label>
+          Description
+          <textarea placeholder="Describe the incident or activity..."></textarea>
+        </label>
+        <button type="button" class="primary-button">Send report</button>
+      </form>
+    </article>
+  </section>
+</div>

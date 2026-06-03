@@ -1,0 +1,139 @@
+<div style="padding:2rem">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+    <div>
+      <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">Security Agents</h1>
+      <p style="color:#94a3b8; font-size:13px; margin-top:4px">{{ agents.length }} agent(s)</p>
+    </div>
+    <a routerLink="/agents/new"
+      style="padding:9px 18px; background:rgba(239,68,68,0.2); color:#fecaca; text-decoration:none;
+        border-radius:8px; font-size:13px; font-weight:600; border:1px solid rgba(239,68,68,0.3); transition:all 0.2s">
+      + Add Agent
+    </a>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center; padding:3rem; color:#94a3b8">Loading...</div>
+
+  <!-- Grouped by site view -->
+  <div *ngIf="!loading">
+    <div *ngFor="let group of siteGroups" style="margin-bottom:2rem">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(148,163,184,0.12)">
+        <span style="font-size:1.1rem">📍</span>
+        <h2 style="font-size:1rem; color:#f8fafc; margin:0; font-weight:700">{{ group.siteName }}</h2>
+        <span *ngIf="group.chefName" style="font-size:12px; color:#94a3b8; background:rgba(168,85,247,0.15); padding:2px 8px; border-radius:12px; border:1px solid rgba(168,85,247,0.3)">
+          👤 Chef: {{ group.chefName }}
+        </span>
+        <span style="font-size:12px; color:#64748b">({{ group.agents.length }})</span>
+      </div>
+
+      <div style="background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.15); border-radius:12px; overflow:hidden">
+        <table style="margin:0; border:none; border-radius:0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Last Name</th>
+              <th>First Name</th>
+              <th>Phone</th>
+              <th>Login Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of group.agents">
+              <td style="font-family:monospace; font-weight:500; color:#ef4444">{{ a.matricule }}</td>
+              <td style="font-weight:600; color:#f1f5f9">{{ a.nom }}</td>
+              <td style="color:#e2e8f0">{{ a.prenom }}</td>
+              <td style="color:#cbd5e1">{{ a.telephone || '—' }}</td>
+              <td style="font-size:12px; color:#64748b">{{ a.matricule }}@stb.tn</td>
+              <td>
+                <span [style.background]="a.statut === 'actif' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'"
+                      [style.color]="a.statut === 'actif' ? '#86efac' : '#fca5a5'"
+                      [style.border]="a.statut === 'actif' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'"
+                      style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600">
+                  {{ a.statut }}
+                </span>
+              </td>
+              <td style="display:flex; gap:6px; flex-wrap:wrap">
+                <a [routerLink]="['/agents/edit', a.id]"
+                  style="color:#ef4444; font-size:12px; text-decoration:none; font-weight:600;
+                    padding:4px 10px; border:1px solid rgba(239,68,68,0.3); border-radius:6px">
+                  Edit
+                </a>
+                <button (click)="openPasswordModal(a.id)"
+                  style="color:#fbbf24; font-size:12px; background:none; border:1px solid rgba(251,191,36,0.3);
+                    padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600">
+                  🔑 PWD
+                </button>
+                <button (click)="delete(a.id)"
+                  style="color:#fca5a5; font-size:12px; background:none; border:1px solid rgba(239,68,68,0.3);
+                    padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="agents.length === 0"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:3rem; text-align:center; color:#64748b">
+      No agents found
+    </div>
+  </div>
+</div>
+
+<!-- Password Modal -->
+<div *ngIf="selectedAgentId !== null"
+  style="position:fixed; top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.7); z-index:9999;
+    display:flex; align-items:center; justify-content:center">
+  <div style="background:rgba(15,23,42,0.95); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:2rem; width:100%; max-width:380px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+      <h3 style="color:#f8fafc; font-size:15px; font-weight:600">Change Password</h3>
+      <button (click)="closeModal()"
+        style="background:none; border:none; font-size:20px; cursor:pointer; color:#94a3b8">
+        ×
+      </button>
+    </div>
+
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+      <div style="margin-bottom:1rem">
+        <label style="display:block; margin-bottom:5px; font-size:13px; font-weight:600; color:#94a3b8">
+          New password
+        </label>
+        <input formControlName="newPassword" type="password" placeholder="Minimum 4 characters">
+        <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+          style="color:#ef4444; font-size:12px; margin-top:4px">
+          ⚠ Minimum 4 characters required.
+        </div>
+      </div>
+
+      <div *ngIf="pwdMessage"
+        style="background:rgba(34,197,94,0.1); color:#86efac; padding:10px; border-radius:6px;
+          font-size:13px; margin-bottom:1rem; border:1px solid rgba(34,197,94,0.2)">
+        ✓ {{ pwdMessage }}
+      </div>
+      <div *ngIf="pwdError"
+        style="background:rgba(239,68,68,0.1); color:#fca5a5; padding:10px; border-radius:6px;
+          font-size:13px; margin-bottom:1rem; border:1px solid rgba(239,68,68,0.2)">
+        ⚠ {{ pwdError }}
+      </div>
+
+      <div style="display:flex; gap:8px">
+        <button type="submit"
+          style="flex:1; padding:10px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3);
+            border-radius:8px; cursor:pointer; font-size:13px; font-weight:600">
+          Confirm
+        </button>
+        <button type="button" (click)="closeModal()"
+          style="flex:1; padding:10px; background:rgba(51,65,85,0.4); color:#94a3b8; border:1px solid rgba(148,163,184,0.12);
+            border-radius:8px; cursor:pointer; font-size:13px">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

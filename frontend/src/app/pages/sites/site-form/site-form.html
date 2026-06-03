@@ -1,0 +1,63 @@
+<div style="padding:2rem; max-width:520px">
+  <div class="analytics-header" style="margin-bottom:1.5rem">
+    <div class="back-button">
+      <a routerLink="/sites" class="btn-icon">← Back</a>
+    </div>
+    <div class="header-content">
+      <h1 style="margin:0; font-size:1.5rem">{{ isEdit ? 'Edit Site' : 'Add Site' }}</h1>
+      <p class="subtitle">{{ isEdit ? 'Update site information' : 'Create a new security site' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()"
+    style="background:rgba(15,23,42,0.8); padding:1.5rem; border-radius:12px; border:1px solid rgba(148,163,184,0.12)">
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Name *</label>
+      <input formControlName="nom" type="text" placeholder="Enter site name">
+      <div *ngIf="form.get('nom')?.invalid && form.get('nom')?.touched"
+        style="color:#ef4444; font-size:12px; margin-top:4px">Name is required</div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Address</label>
+      <input formControlName="adresse" type="text" placeholder="Enter address">
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">City</label>
+      <input formControlName="ville" type="text" placeholder="Enter city">
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Team Leader (Chef)</label>
+      <select formControlName="chef_id">
+        <option value="">None</option>
+        <option *ngFor="let chef of chefs" [value]="chef.id">
+          {{ chef.nom }}
+        </option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:1.5rem">
+      <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Status</label>
+      <select formControlName="statut">
+        <option value="actif">Active</option>
+        <option value="inactif">Inactive</option>
+      </select>
+    </div>
+
+    <div *ngIf="error" style="color:#ef4444; font-size:13px; margin-bottom:1rem; padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px">{{ error }}</div>
+
+    <div style="display:flex; gap:1rem">
+      <button type="submit" [disabled]="loading"
+        style="padding:10px 24px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3); border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; transition:all 0.2s">
+        {{ loading ? 'Saving...' : (isEdit ? 'Update' : 'Add Site') }}
+      </button>
+      <a routerLink="/sites"
+        style="padding:10px 24px; background:rgba(51,65,85,0.4); color:#94a3b8; text-decoration:none; border-radius:8px; font-size:14px; display:inline-flex; align-items:center; border:1px solid rgba(148,163,184,0.12)">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>

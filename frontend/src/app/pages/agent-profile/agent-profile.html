@@ -1,0 +1,135 @@
+<div class="profile-shell">
+  <div class="profile-header">
+    <button routerLink="/dashboard" class="btn-icon">← Back</button>
+    <div class="header-content">
+      <h1>My Profile</h1>
+      <p class="subtitle">{{ roleLabel() }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="saveSuccess" class="alert alert-success">✓ {{ saveSuccess }}</div>
+  <div *ngIf="saveError" class="alert alert-error">⚠ {{ saveError }}</div>
+
+  <div class="profile-content">
+    <div class="left-column">
+      <section class="card profile-info">
+        <div class="card-header">
+          <h2>Personal Information</h2>
+          <div class="card-header-actions">
+            <button *ngIf="!editMode" (click)="toggleEdit()" class="btn-secondary">Edit</button>
+            <ng-container *ngIf="editMode">
+              <button (click)="save()" class="btn-primary">Save</button>
+              <button (click)="toggleEdit()" class="btn-secondary">Cancel</button>
+            </ng-container>
+          </div>
+        </div>
+        <div *ngIf="loading" class="loading">Loading...</div>
+        <div *ngIf="!loading && user" class="info-grid">
+          <div class="info-field">
+            <label>Full Name</label>
+            <div *ngIf="!editMode" class="info-value">{{ user?.nom || 'N/A' }}</div>
+            <input *ngIf="editMode" class="info-input" type="text" [(ngModel)]="user.nom" />
+          </div>
+          <div class="info-field">
+            <label>Email</label>
+            <div *ngIf="!editMode" class="info-value">{{ user?.email || 'N/A' }}</div>
+            <input *ngIf="editMode" class="info-input" type="email" [(ngModel)]="user.email" />
+          </div>
+          <div class="info-field">
+            <label>Phone</label>
+            <div *ngIf="!editMode" class="info-value">{{ user?.telephone || 'Not provided' }}</div>
+            <input *ngIf="editMode" class="info-input" type="tel" [(ngModel)]="user.telephone" />
+          </div>
+          <div class="info-field">
+            <label>Address</label>
+            <div *ngIf="!editMode" class="info-value">{{ user?.adresse || 'Not provided' }}</div>
+            <input *ngIf="editMode" class="info-input" type="text" [(ngModel)]="user.adresse" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card password-card">
+        <h2>Change Password</h2>
+        <div *ngIf="pwdSuccess" class="pwd-alert pwd-success">✓ {{ pwdSuccess }}</div>
+        <div *ngIf="pwdError" class="pwd-alert pwd-error">⚠ {{ pwdError }}</div>
+        <div class="password-form">
+          <div>
+            <label class="field-label">Current Password</label>
+            <input [(ngModel)]="currentPassword" type="password" placeholder="Enter current password" class="password-input" />
+          </div>
+          <div>
+            <label class="field-label">New Password</label>
+            <input [(ngModel)]="newPassword" type="password" placeholder="Minimum 4 characters" class="password-input" />
+          </div>
+          <button (click)="changePassword()" [disabled]="!currentPassword || !newPassword || pwdLoading" class="password-button">
+            {{ pwdLoading ? 'Changing...' : 'Change Password' }}
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="right-column">
+      <section *ngIf="isAgent()" class="card stats-info">
+        <h2>My Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ profileStats.totalAssignments }}</div>
+            <div class="stat-label">Total Assignments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ profileStats.completedAssignments }}</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ profileStats.hoursWorked }}h</div>
+            <div class="stat-label">Hours Worked</div>
+          </div>
+        </div>
+      </section>
+
+      <section *ngIf="!isAgent()" class="card stats-info">
+        <h2>Team Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ teamStats.teamSize }}</div>
+            <div class="stat-label">Team Members</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ teamStats.activeAffectations }}</div>
+            <div class="stat-label">Active Assignments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ teamStats.sitesManaged }}</div>
+            <div class="stat-label">Sites Managed</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section *ngIf="isAgent()" class="card assignment-history">
+    <h2>Assignment History</h2>
+    <div *ngIf="loading" class="loading">Loading...</div>
+    <div *ngIf="!loading && assignmentHistory.length === 0" class="empty-state">
+      <p>No assignments</p>
+    </div>
+    <div *ngIf="!loading && assignmentHistory.length > 0" class="history-table">
+      <div class="table-header">
+        <div class="col-site">Site</div>
+        <div class="col-dates">Dates</div>
+        <div class="col-status">Status</div>
+        <div class="col-hours">Hours</div>
+      </div>
+      <div *ngFor="let aff of assignmentHistory" class="table-row">
+        <div class="col-site">{{ aff.site_nom || aff.site }}</div>
+        <div class="col-dates">
+          {{ aff.date_debut | date: 'dd/MM/yyyy' }} - {{ aff.date_fin ? (aff.date_fin | date: 'dd/MM/yyyy') : 'Ongoing' }}
+        </div>
+        <div class="col-status">
+          <span class="status-badge" [class]="aff.statut">{{ aff.statut }}</span>
+        </div>
+        <div class="col-hours">{{ aff.heures || 0 }}h</div>
+      </div>
+    </div>
+  </section>
+</div>

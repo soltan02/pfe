@@ -1,0 +1,121 @@
+<div style="padding:2rem">
+  <div style="margin-bottom:1.5rem">
+    <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">User Management</h1>
+    <p style="color:#94a3b8; font-size:13px; margin-top:4px">Manage user accounts — change passwords or roles</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem">
+
+    <!-- Users list grouped by site -->
+    <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; overflow:hidden; max-height:70vh; overflow-y:auto">
+      <div style="background:rgba(51,65,85,0.4); padding:12px 16px; border-bottom:1px solid rgba(148,163,184,0.12); position:sticky; top:0; z-index:1">
+        <h3 style="color:#f8fafc; font-size:14px; font-weight:600">User List</h3>
+      </div>
+      <div *ngIf="loading" style="padding:2rem; text-align:center; color:#94a3b8">Loading...</div>
+
+      <!-- Search input -->
+      <div *ngIf="!loading" style="padding:8px 16px; border-bottom:1px solid rgba(148,163,184,0.12)">
+        <input [(ngModel)]="searchTerm" (ngModelChange)="filterUsers()"
+          placeholder="🔍 Search by name, email or ID..."
+          style="width:100%; padding:8px 12px; background:rgba(30,41,59,0.6); border:1px solid rgba(148,163,184,0.2); border-radius:6px; color:#f8fafc; font-size:13px">
+      </div>
+
+      <div *ngFor="let group of filteredSiteGroups">
+        <!-- Site group header -->
+        <div style="padding:8px 16px; background:rgba(51,65,85,0.25); border-bottom:1px solid rgba(148,163,184,0.12); display:flex; align-items:center; gap:6px">
+          <span style="font-size:12px">📍</span>
+          <span style="font-size:12px; font-weight:700; color:#f1f5f9; text-transform:uppercase; letter-spacing:0.05em">{{ group.siteName }}</span>
+          <span style="font-size:11px; color:#64748b">({{ group.users.length }})</span>
+        </div>
+
+        <!-- Users in this group -->
+        <div *ngFor="let u of group.users"
+          (click)="selectUser(u)"
+          [style.background]="selectedUser?.id === u.id ? 'rgba(239,68,68,0.08)' : 'transparent'"
+          style="padding:12px 16px; border-bottom:1px solid rgba(148,163,184,0.08); cursor:pointer; transition:background 0.15s">
+          <div style="display:flex; align-items:center; gap:10px">
+            <div [style.background]="u.role === 'admin' ? 'rgba(239,68,68,0.3)' : u.role === 'chef_equipe' ? 'rgba(168,85,247,0.3)' : 'rgba(59,130,246,0.3)'"
+              style="width:32px; height:32px; border-radius:50%; display:flex; align-items:center;
+                justify-content:center; color:white; font-weight:600; font-size:13px; flex-shrink:0">
+              {{ u.nom?.charAt(0) }}
+            </div>
+            <div style="min-width:0">
+              <div style="font-weight:500; font-size:13px; color:#f8fafc">{{ u.nom }}</div>
+              <div style="font-size:11px; color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ u.email }}</div>
+            </div>
+            <span [style.background]="u.role === 'admin' ? 'rgba(239,68,68,0.15)' : u.role === 'chef_equipe' ? 'rgba(168,85,247,0.15)' : 'rgba(59,130,246,0.15)'"
+                  [style.color]="u.role === 'admin' ? '#fca5a5' : u.role === 'chef_equipe' ? '#c4b5fd' : '#93c5fd'"
+                  [style.border]="u.role === 'admin' ? '1px solid rgba(239,68,68,0.3)' : u.role === 'chef_equipe' ? '1px solid rgba(168,85,247,0.3)' : '1px solid rgba(59,130,246,0.3)'"
+                  style="margin-left:auto; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; flex-shrink:0">
+              {{ u.role === 'chef_equipe' ? 'Chef' : u.role === 'admin' ? 'Admin' : 'Agent' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions panel -->
+    <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; overflow:hidden">
+      <div style="background:rgba(51,65,85,0.4); padding:12px 16px; border-bottom:1px solid rgba(148,163,184,0.12)">
+        <h3 style="color:#f8fafc; font-size:14px; font-weight:600">
+          {{ selectedUser ? 'Manage: ' + selectedUser.nom : 'Select a user' }}
+        </h3>
+      </div>
+      <div style="padding:1.5rem">
+        <div *ngIf="!selectedUser" style="text-align:center; padding:2rem; color:#64748b">
+          <div style="font-size:3rem; margin-bottom:8px">👤</div>
+          <p>Click on a user to manage them</p>
+        </div>
+
+        <div *ngIf="selectedUser">
+          <div style="background:rgba(51,65,85,0.3); border:1px solid rgba(148,163,184,0.12); border-radius:8px; padding:12px; margin-bottom:1.5rem">
+            <div style="font-weight:500; color:#f8fafc">{{ selectedUser.nom }}</div>
+            <div style="font-size:12px; color:#64748b; margin-top:2px">{{ selectedUser.email }}</div>
+            <div *ngIf="selectedUser.site_nom" style="font-size:11px; color:#94a3b8; margin-top:4px">📍 {{ selectedUser.site_nom }}</div>
+          </div>
+
+          <!-- Change Role -->
+          <div style="margin-bottom:1.5rem; border:1px solid rgba(148,163,184,0.12); border-radius:8px; padding:1rem">
+            <h4 style="font-size:13px; color:#94a3b8; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em">Change Role</h4>
+            <div style="display:flex; gap:8px; align-items:center">
+              <select [(ngModel)]="selectedRole" style="flex:1">
+                <option value="agent">Agent</option>
+                <option value="chef_equipe">Team Leader</option>
+                <option value="admin">Administrator</option>
+              </select>
+              <button (click)="changeRole()"
+                style="padding:8px 16px; background:rgba(168,85,247,0.2); color:#c4b5fd; border:1px solid rgba(168,85,247,0.3); border-radius:8px; cursor:pointer; font-size:13px; font-weight:600">
+                Update
+              </button>
+            </div>
+          </div>
+
+          <!-- Change Password -->
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" style="border:1px solid rgba(148,163,184,0.12); border-radius:8px; padding:1rem">
+            <h4 style="font-size:13px; color:#94a3b8; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em">Change Password</h4>
+            <div style="margin-bottom:1rem">
+              <input formControlName="newPassword" type="password" placeholder="Minimum 4 characters">
+              <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+                style="color:#ef4444; font-size:12px; margin-top:4px">
+                ⚠ Minimum 4 characters required.
+              </div>
+            </div>
+            <button type="submit"
+              style="width:100%; padding:10px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3); border-radius:8px; cursor:pointer; font-size:14px; font-weight:600">
+              Change Password
+            </button>
+          </form>
+
+          <div *ngIf="message"
+            style="background:rgba(34,197,94,0.1); color:#86efac; padding:10px 14px; border-radius:6px; font-size:13px; margin-top:1rem; border:1px solid rgba(34,197,94,0.2)">
+            ✓ {{ message }}
+          </div>
+          <div *ngIf="error"
+            style="background:rgba(239,68,68,0.1); color:#fca5a5; padding:10px 14px; border-radius:6px; font-size:13px; margin-top:1rem; border:1px solid rgba(239,68,68,0.2)">
+            ⚠ {{ error }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

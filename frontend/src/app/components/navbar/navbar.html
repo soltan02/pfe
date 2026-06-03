@@ -1,0 +1,116 @@
+<nav class="app-navbar">
+  <div class="navbar-brand">
+    <div class="brand-logo">STB</div>
+    <div>
+      <div class="brand-title">STB Security</div>
+      <div class="brand-subtitle">Agent Management</div>
+    </div>
+  </div>
+
+  <!-- Mobile menu toggle -->
+  <button class="menu-toggle" (click)="toggleMenu()" *ngIf="user">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- Navigation Links -->
+  <div class="navbar-links" [class.open]="menuOpen" *ngIf="user">
+    <!-- Common links (all roles) -->
+    <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">
+      <span class="icon">🏠</span>
+      Home
+    </a>
+    <a *ngIf="isAdmin()" routerLink="/map" routerLinkActive="active" (click)="closeMenu()">
+      <span class="icon">🗺️</span>
+      Map
+    </a>
+
+    <!-- Agent-specific links -->
+    <div *ngIf="isAgent()" class="nav-section">
+      <span class="nav-divider">My Pages</span>
+      <a routerLink="/mes-affectations" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📋</span>
+        My Assignments
+      </a>
+      <a routerLink="/tickets" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">🎫</span>
+        My Tickets
+      </a>
+      <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">👤</span>
+        My Profile
+      </a>
+    </div>
+
+    <!-- Team Leader-specific links -->
+    <div *ngIf="isChef()" class="nav-section">
+      <span class="nav-divider">Team Management</span>
+      <a routerLink="/team-management" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">👥</span>
+        My Team
+      </a>
+      <a routerLink="/pointage" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📋</span>
+        Attendance
+      </a>
+      <a routerLink="/chef-tickets" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">🎫</span>
+        Team Tickets
+      </a>
+      <a routerLink="/rapports" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📝</span>
+        Reports
+      </a>
+      <a routerLink="/agents" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">➕</span>
+        Add Agent
+      </a>
+      <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">👤</span>
+        My Profile
+      </a>
+    </div>
+
+    <!-- Admin-specific links -->
+    <div *ngIf="isAdmin()" class="nav-section">
+      <span class="nav-divider">Administration</span>
+      <a routerLink="/agents" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">👤</span>
+        Agents
+      </a>
+      <a routerLink="/affectations" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📋</span>
+        Assignments
+      </a>
+      <a routerLink="/admin-tickets" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">🎫</span>
+        All Tickets
+      </a>
+      <a routerLink="/users" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">🔑</span>
+        Users
+      </a>
+      <a routerLink="/rapports" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📝</span>
+        Reports
+      </a>
+      <a routerLink="/admin-analytics" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📊</span>
+        Analytics
+      </a>
+    </div>
+  </div>
+
+  <!-- User Info & Logout -->
+  <div class="navbar-user" *ngIf="user">
+    <div class="user-info">
+      <span class="user-name">{{ user.nom }}</span>
+      <span class="user-role" [class]="user.role">{{ getRoleLabel() }}</span>
+    </div>
+    <button class="logout-button" (click)="auth.logout(); closeMenu()">
+      <span class="icon">🚪</span>
+      Logout
+    </button>
+  </div>
+</nav>

@@ -1,0 +1,143 @@
+<div class="dashboard-shell">
+  <section class="hero-card">
+    <div class="hero-header">
+      <div class="hero-title">
+        <span class="hero-badge">Administrator</span>
+        <h1>Hello, {{ user?.nom || 'Admin' }}</h1>
+        <p>{{ todayLabel }}</p>
+      </div>
+      <div class="hero-summary">
+        <div class="summary-item">
+          <div class="summary-value">{{ systemStats.agents }}</div>
+          <div class="summary-label">Total Agents</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ systemStats.sites }}</div>
+          <div class="summary-label">Sites</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ systemStats.affectations }}</div>
+          <div class="summary-label">Assignments</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ systemStats.users }}</div>
+          <div class="summary-label">Users</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-layout">
+    <article class="panel management-section">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Management</p>
+          <h2>Administration Tools</h2>
+        </div>
+      </div>
+      <div class="management-grid">
+        <button routerLink="/agents" class="mgmt-button">
+          <span class="icon">👤</span>
+          <span>Manage Agents</span>
+        </button>
+        <button routerLink="/sites" class="mgmt-button">
+          <span class="icon">📍</span>
+          <span>Manage Sites</span>
+        </button>
+        <button routerLink="/affectations" class="mgmt-button">
+          <span class="icon">📋</span>
+          <span>Assignments</span>
+        </button>
+        <button routerLink="/users" class="mgmt-button">
+          <span class="icon">🔑</span>
+          <span>Users</span>
+        </button>
+      </div>
+    </article>
+
+    <article class="panel affectations-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Recent</p>
+          <h2>Assignments</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && recentAffectations.length === 0" class="empty-state">
+        <p>No assignments</p>
+      </div>
+      <div *ngIf="!loading && recentAffectations.length > 0" class="affectations-list">
+        <div *ngFor="let aff of recentAffectations" class="affectation-item">
+          <div class="aff-header">
+            <strong>{{ aff.site_nom || aff.site }}</strong>
+            <span class="status-badge" [class]="statusClass(aff.statut)">{{ aff.statut }}</span>
+          </div>
+          <div class="aff-details">
+            <span>{{ aff.agent_nom || aff.agent }}</span>
+            <span>{{ aff.date_debut | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/affectations" class="secondary-button">View All Assignments</button>
+      </div>
+    </article>
+
+    <article class="panel agents-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Recent</p>
+          <h2>Agents</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && recentAgents.length === 0" class="empty-state">
+        <p>No agents</p>
+      </div>
+      <div *ngIf="!loading && recentAgents.length > 0" class="agents-list">
+        <div *ngFor="let agent of recentAgents" class="agent-item">
+          <div class="agent-info">
+            <strong>{{ agent.nom }}</strong>
+            <span class="agent-email">{{ agent.email }}</span>
+          </div>
+          <div class="agent-actions">
+            <button class="action-btn" title="Edit" [routerLink]="['/agents/edit', agent.id]">✏️</button>
+            <button class="action-btn danger" title="Delete" (click)="deleteAgent(agent.id)">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/agents" class="secondary-button">View All Agents</button>
+        <button routerLink="/agents/new" class="primary-button">New Agent</button>
+      </div>
+    </article>
+
+    <article class="panel requests-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">To Process</p>
+          <h2>Team Requests</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && chefRequests.length === 0" class="empty-state">
+        <p>No pending requests</p>
+      </div>
+      <div *ngIf="!loading && chefRequests.length > 0" class="requests-list">
+        <div *ngFor="let req of chefRequests" class="request-item">
+          <div class="req-header">
+            <strong>{{ req.chef_nom }}</strong>
+            <span class="request-type">{{ req.type }}</span>
+          </div>
+          <div class="req-details">
+            <span>{{ req.description }}</span>
+            <span class="req-date">{{ req.date_creation | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/rapports" class="secondary-button">View All Requests</button>
+      </div>
+    </article>
+  </section>
+</div>

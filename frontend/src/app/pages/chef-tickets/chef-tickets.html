@@ -1,0 +1,117 @@
+<div style="padding:2rem; min-height:100vh">
+  <div style="max-width:1200px; margin:0 auto">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:1.5rem">🎫</span>
+        <div>
+          <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">Team Tickets</h1>
+          <p style="color:#94a3b8; font-size:13px; margin-top:2px">Review and approve your team's requests</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:1px; background:rgba(148,163,184,0.12); margin-bottom:1.5rem"></div>
+
+    <!-- Stats Cards -->
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-bottom:1.5rem">
+      <div (click)="filter = 'pending'" [style.border-color]="filter === 'pending' ? 'rgba(251,191,36,0.5)' : 'rgba(148,163,184,0.12)'"
+        style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1rem; cursor:pointer; transition:all 0.2s">
+        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; margin-bottom:6px">Pending</div>
+        <div style="font-size:1.5rem; font-weight:700; color:#fbbf24">{{ pendingCount }}</div>
+      </div>
+      <div (click)="filter = 'approved'" [style.border-color]="filter === 'approved' ? 'rgba(96,165,250,0.5)' : 'rgba(148,163,184,0.12)'"
+        style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1rem; cursor:pointer; transition:all 0.2s">
+        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; margin-bottom:6px">Awaiting Admin</div>
+        <div style="font-size:1.5rem; font-weight:700; color:#60a5fa">{{ chefApprovedCount }}</div>
+      </div>
+      <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1rem">
+        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; margin-bottom:6px">Approved</div>
+        <div style="font-size:1.5rem; font-weight:700; color:#86efac">{{ approvedCount }}</div>
+      </div>
+      <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1rem">
+        <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; font-weight:700; margin-bottom:6px">Rejected</div>
+        <div style="font-size:1.5rem; font-weight:700; color:#fca5a5">{{ rejectedCount }}</div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display:flex; gap:6px; margin-bottom:1.5rem">
+      <button *ngFor="let f of ['all', 'pending', 'approved', 'rejected']"
+        (click)="filter = $any(f)"
+        [style.background]="filter === f ? 'rgba(99,102,241,0.2)' : 'rgba(51,65,85,0.3)'"
+        [style.color]="filter === f ? '#a5b4fc' : '#94a3b8'"
+        [style.border]="filter === f ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(148,163,184,0.12)'"
+        style="padding:8px 18px; border-radius:8px; cursor:pointer; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; transition:all 0.2s">
+        {{ f === 'all' ? '📋 All' : f === 'pending' ? '⏳ Pending' : f === 'approved' ? '✓ Awaiting' : '✕ Rejected' }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" style="text-align:center; padding:3rem; color:#94a3b8">Loading tickets...</div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && filteredTickets.length === 0"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:3rem; text-align:center; color:#64748b">
+      <div style="font-size:2rem; margin-bottom:0.5rem">📋</div>
+      <p>No tickets in this category.</p>
+    </div>
+
+    <!-- Ticket Cards -->
+    <div *ngFor="let ticket of filteredTickets"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1.25rem; margin-bottom:0.75rem">
+
+      <div style="display:flex; align-items:flex-start; gap:16px">
+        <!-- Type Icon -->
+        <div style="width:48px; height:48px; border-radius:12px; background:rgba(30,41,59,0.8); border:1px solid rgba(148,163,184,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0">
+          {{ getTypeIcon(ticket.type) }}
+        </div>
+
+        <!-- Main Info -->
+        <div style="flex:1; min-width:0">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap">
+            <span style="font-weight:700; color:#f8fafc; font-size:14px">{{ ticket.agent_name || 'Agent #' + ticket.agent_id }}</span>
+            <span *ngIf="ticket.agent_matricule" style="font-size:11px; color:#64748b">({{ ticket.agent_matricule }})</span>
+            <span [style.background]="getTicketStatus(ticket).bg"
+                  [style.color]="getTicketStatus(ticket).color"
+                  [style.border]="'1px solid ' + getTicketStatus(ticket).border"
+                  style="padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase">
+              {{ getTicketStatus(ticket).label }}
+            </span>
+          </div>
+          <div style="font-size:13px; font-weight:600; color:#cbd5e1; margin-bottom:2px">{{ getTypeLabel(ticket.type) }}</div>
+          <div style="font-size:12px; color:#94a3b8">
+            📅 {{ ticket.date_debut | date:'dd/MM/yyyy' }}
+            <span *ngIf="ticket.date_fin"> → {{ ticket.date_fin | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div style="font-size:13px; color:#cbd5e1; margin-top:6px; padding:8px; background:rgba(30,41,59,0.4); border-radius:6px; border-left:3px solid rgba(99,102,241,0.5)">
+            {{ ticket.motif }}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div *ngIf="ticket.statut === 'pending' && !ticket.chef_approved" style="display:flex; flex-direction:column; gap:6px; flex-shrink:0">
+          <button (click)="approveTicket(ticket.id)"
+            style="padding:8px 16px; background:rgba(34,197,94,0.2); color:#86efac; border:1px solid rgba(34,197,94,0.3); border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; transition:all 0.2s; white-space:nowrap">
+            ✓ Approve
+          </button>
+          <button (click)="rejectTicket(ticket.id)"
+            style="padding:8px 16px; background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; transition:all 0.2s; white-space:nowrap">
+            ✕ Reject
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div *ngIf="toast"
+      [style.background]="toast.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'"
+      [style.border]="toast.type === 'success' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'"
+      [style.color]="toast.type === 'success' ? '#86efac' : '#fca5a5'"
+      style="position:fixed; bottom:2rem; right:2rem; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:1000; display:flex; align-items:center; gap:8px">
+      {{ toast.type === 'success' ? '✅' : '❌' }} {{ toast.message }}
+    </div>
+
+  </div>
+</div>

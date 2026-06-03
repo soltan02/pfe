@@ -1,0 +1,260 @@
+<div class="attendance-page">
+
+  <!-- Top Stats Bar -->
+  <div class="stats-bar">
+    <div class="stats-bar-left">
+      <span class="stats-bar-icon">◉</span>
+      <div>
+        <h1 class="stats-bar-title">Attendance Tracking</h1>
+        <p class="stats-bar-subtitle">Supervisor Portal — STB Siege Central Hub</p>
+      </div>
+    </div>
+    <div class="stats-bar-right">
+      <div class="stat-pill present-pill">
+        <span class="stat-check">✓</span>
+        <div>
+          <div class="stat-label">PRESENT</div>
+          <div class="stat-number present-num">{{ presentCount < 10 ? '0' + presentCount : presentCount }}</div>
+        </div>
+      </div>
+      <div class="stat-pill late-pill">
+        <span class="stat-dot">●</span>
+        <div>
+          <div class="stat-label">LATE</div>
+          <div class="stat-number late-num">{{ lateCount < 10 ? '0' + lateCount : lateCount }}</div>
+        </div>
+      </div>
+      <div class="stat-pill absent-pill">
+        <span class="stat-x">✕</span>
+        <div>
+          <div class="stat-label">ABSENT</div>
+          <div class="stat-number absent-num">{{ absentCount < 10 ? '0' + absentCount : absentCount }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main 3-column layout -->
+  <div class="main-layout">
+
+    <!-- LEFT: Agent List -->
+    <aside class="left-panel">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="filterAgents()"
+          placeholder="Search agent..." class="search-input">
+      </div>
+
+      <div class="agent-list" *ngIf="!loading">
+        <div *ngFor="let agent of filteredAgents"
+          class="agent-card"
+          [class.selected]="selectedAgent?.id === agent.id"
+          (click)="selectAgent(agent)">
+          <div class="agent-avatar" [style.background]="selectedAgent?.id === agent.id ? 'rgba(79,70,229,0.3)' : 'rgba(59,130,246,0.2)'"
+            [style.border-color]="selectedAgent?.id === agent.id ? 'rgba(79,70,229,0.5)' : 'rgba(59,130,246,0.3)'">
+            <span [style.color]="selectedAgent?.id === agent.id ? '#a5b4fc' : '#93c5fd'">{{ initials(agent.agent_nom) }}</span>
+          </div>
+          <div class="agent-info">
+            <div class="agent-name">{{ agent.agent_nom }}</div>
+            <div class="agent-meta">ID: #{{ agent.id }}</div>
+          </div>
+          <div class="status-dot" [class]="'dot-' + agent.statusDot"></div>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="loading-state">Loading agents...</div>
+    </aside>
+
+    <!-- CENTER: Record Attendance Form -->
+    <main class="center-panel">
+      <!-- Agent header (shown when agent selected) -->
+      <div class="record-header" *ngIf="selectedAgent">
+        <div class="record-avatar">
+          {{ initials(selectedAgent.agent_nom) }}
+        </div>
+        <div class="record-info">
+          <h2 class="record-title">Record Attendance</h2>
+          <p class="record-subtitle">Currently Marking: <span class="highlight">{{ selectedAgent.agent_nom }} (#{{ selectedAgent.id }})</span></p>
+        </div>
+        <div class="record-date">
+          <div class="date-label">SELECTED DATE</div>
+          <div class="date-value">{{ selectedDayLabel }}</div>
+        </div>
+      </div>
+
+      <div class="record-header placeholder-header" *ngIf="!selectedAgent">
+        <div class="record-avatar placeholder-avatar">?</div>
+        <div class="record-info">
+          <h2 class="record-title">Record Attendance</h2>
+          <p class="record-subtitle">Select an agent from the list to begin</p>
+        </div>
+      </div>
+
+      <!-- Attendance Status Cards -->
+      <div class="status-section">
+        <div class="status-label">ATTENDANCE STATUS</div>
+        <div class="status-cards">
+          <button class="status-card" [class.active-present]="selectedStatus === 'present'"
+            (click)="setStatus('present')">
+            <div class="status-card-icon present-icon-bg">✓</div>
+            <div class="status-card-text">PRESENT</div>
+          </button>
+          <button class="status-card" [class.active-late]="selectedStatus === 'retard'"
+            (click)="setStatus('retard')">
+            <div class="status-card-icon late-icon-bg">●</div>
+            <div class="status-card-text">LATE</div>
+          </button>
+          <button class="status-card" [class.active-absent]="selectedStatus === 'absent'"
+            (click)="setStatus('absent')">
+            <div class="status-card-icon absent-icon-bg">✕</div>
+            <div class="status-card-text">ABSENT</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Day Selection -->
+      <div class="day-selection-section">
+        <div class="status-label">SELECT DAY</div>
+        <div class="day-cards">
+          <button *ngFor="let day of weekDays"
+            class="day-card"
+            [class.active-day]="selectedDate === day.date"
+            [class.today-card]="day.isToday"
+            (click)="selectDay(day.date)">
+            <div class="day-card-label">{{ day.label }}</div>
+            <div class="day-card-num">{{ day.short }}</div>
+            <div *ngIf="day.isToday" class="today-dot"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Time Inputs -->
+      <div class="time-row">
+        <div class="time-group">
+          <div class="time-label">ARRIVAL TIME</div>
+          <div class="time-input-wrap">
+            <input type="time" [(ngModel)]="arrivalTime" class="time-input">
+          </div>
+        </div>
+        <div class="time-group">
+          <div class="time-label">DEPARTURE TIME</div>
+          <div class="time-input-wrap">
+            <input type="time" [(ngModel)]="departureTime" class="time-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <button class="save-btn" [disabled]="!selectedAgent || saving" (click)="saveAttendance()">
+        <span>☐</span>
+        {{ saving ? 'Saving...' : 'Save Attendance Record' }}
+      </button>
+
+      <!-- Monthly Attendance Status -->
+      <div class="monthly-section">
+        <div class="monthly-header">
+          <div class="monthly-title">ATTENDANCE STATUS</div>
+          <div class="month-nav">
+            <button class="month-nav-btn" (click)="changeMonth(-1)">◀</button>
+            <span class="month-nav-label">{{ currentMonth }}</span>
+            <button class="month-nav-btn" (click)="changeMonth(1)">▶</button>
+          </div>
+        </div>
+
+        <div *ngIf="groupedByDay.length === 0" class="no-data">
+          No attendance data for this month
+        </div>
+
+        <div *ngFor="let day of groupedByDay" class="day-group">
+          <!-- Day Header -->
+          <div class="day-header">
+            <div class="day-label">{{ formatDayLabel(day.date) }}</div>
+            <div class="day-stats">
+              <span class="day-stat day-stat-present">{{ dayPresentCount(day.records) }} Present</span>
+              <span class="day-stat day-stat-late">{{ dayLateCount(day.records) }} Late</span>
+              <span class="day-stat day-stat-absent">{{ dayAbsentCount(day.records) }} Absent</span>
+            </div>
+          </div>
+
+          <!-- Day Records -->
+          <div *ngFor="let rec of day.records" class="day-record">
+            <div class="day-record-avatar">
+              {{ initials(rec.agent_nom) }}
+            </div>
+            <div class="day-record-info">
+              <div class="day-record-name">{{ rec.agent_nom }}</div>
+              <div class="day-record-time">{{ rec.heure_arrivee || '--:--' }} → {{ rec.heure_depart || '--:--' }}</div>
+            </div>
+            <span class="day-record-badge"
+              [class.badge-present]="rec.statut === 'present'"
+              [class.badge-late]="rec.statut === 'retard'"
+              [class.badge-absent]="rec.statut === 'absent'">
+              {{ rec.statut === 'present' ? 'PRESENT' : rec.statut === 'retard' ? 'LATE' : 'ABSENT' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT: Site Info + Recent Activity -->
+    <aside class="right-panel">
+      <!-- Site Card -->
+      <div class="site-card">
+        <div class="site-header">
+          <div class="site-avatar">SC</div>
+          <div>
+            <div class="site-name">STB Siege Central</div>
+            <div class="site-desc">Presence Verification Hub</div>
+          </div>
+        </div>
+        <div class="site-divider"></div>
+        <div class="site-stats">
+          <span>Agents On-Site</span>
+          <span class="site-count">
+            <span class="count-present">{{ presentCount }}</span> / {{ totalAgents }}
+          </span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="totalAgents > 0 ? (presentCount / totalAgents) * 100 : 0"></div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="recent-card">
+        <div class="recent-title">RECENT ACTIVITY</div>
+
+        <div *ngIf="todayPresences.length === 0" class="no-recent">
+          No activity today
+        </div>
+
+        <div *ngFor="let p of todayPresences.slice(0, 5)" class="recent-item">
+          <div class="recent-avatar"
+            [style.background]="p.presence?.statut === 'present' ? 'rgba(34,197,94,0.2)' : p.presence?.statut === 'retard' ? 'rgba(251,191,36,0.2)' : 'rgba(239,68,68,0.2)'"
+            [style.border-color]="p.presence?.statut === 'present' ? 'rgba(34,197,94,0.3)' : p.presence?.statut === 'retard' ? 'rgba(251,191,36,0.3)' : 'rgba(239,68,68,0.3)'">
+            {{ initials(p.nom) }}
+          </div>
+          <div class="recent-info">
+            <div class="recent-name">{{ p.nom }}</div>
+            <div class="recent-time">{{ p.presence?.heure_arrivee || '--:--' }}</div>
+          </div>
+          <span class="recent-badge"
+            [class.badge-present]="p.presence?.statut === 'present'"
+            [class.badge-late]="p.presence?.statut === 'retard'"
+            [class.badge-absent]="p.presence?.statut === 'absent'">
+            {{ p.presence?.statut === 'present' ? 'PRESENT' : p.presence?.statut === 'retard' ? 'LATE' : 'ABSENT' }}
+          </span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="toast"
+    class="toast"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'">
+    {{ toast.type === 'success' ? '✅' : '❌' }} {{ toast.message }}
+  </div>
+
+</div>

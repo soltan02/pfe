@@ -1,0 +1,131 @@
+<div class="dashboard-shell">
+  <section class="hero-card">
+    <div class="hero-header">
+      <div class="hero-title">
+        <span class="hero-badge">STB Security</span>
+        <h1>Hello, {{ user?.nom || 'User' }}</h1>
+        <p>{{ todayLabel }}</p>
+      </div>
+      <div class="hero-summary">
+        <div class="summary-item">
+          <div class="summary-value">{{ activeCount }}</div>
+          <div class="summary-label">Active Assignments</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ myAffectations.length }}</div>
+          <div class="summary-label">Recent Assignments</div>
+        </div>
+        <div class="summary-item attendance-stat present-stat">
+          <div class="attendance-icon">✅</div>
+          <div class="summary-value present-value">{{ attendanceSummary.present }}</div>
+          <div class="summary-label">Days Present — {{ currentMonthLabel }}</div>
+        </div>
+        <div class="summary-item attendance-stat absent-stat">
+          <div class="attendance-icon">❌</div>
+          <div class="summary-value absent-count">{{ attendanceSummary.absent }}</div>
+          <div class="summary-label">Days Absent — {{ currentMonthLabel }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-layout">
+    <article class="panel info-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">My Information</p>
+          <h2>Agent Profile</h2>
+        </div>
+      </div>
+      <div class="info-content">
+        <div class="info-row">
+          <span class="label">Name</span>
+          <strong>{{ user?.nom || 'N/A' }}</strong>
+        </div>
+        <div class="info-row">
+          <span class="label">Email</span>
+          <strong>{{ user?.email || 'N/A' }}</strong>
+        </div>
+        <div class="info-row">
+          <span class="label">Role</span>
+          <strong>Security Agent</strong>
+        </div>
+        <div class="action-row">
+          <button routerLink="/agent-profile" class="primary-button">View Full Profile</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel attendance-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">{{ currentMonthLabel }}</p>
+          <h2>Monthly Attendance</h2>
+        </div>
+      </div>
+      <div *ngIf="attendanceLoading" class="loading-state">Loading...</div>
+      <div *ngIf="!attendanceLoading" class="attendance-summary">
+        <div class="attendance-item present">
+          <span class="attendance-label">Present</span>
+          <strong>{{ attendanceSummary.present }}</strong>
+        </div>
+        <div class="attendance-item absent">
+          <span class="attendance-label">Absent</span>
+          <strong>{{ attendanceSummary.absent }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel affectations-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">Recently Assigned</p>
+          <h2>My Assignments</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && myAffectations.length === 0" class="empty-state">
+        <p>No assignments at the moment</p>
+      </div>
+      <div *ngIf="!loading && myAffectations.length > 0" class="affectations-list">
+        <div *ngFor="let aff of myAffectations" class="affectation-item">
+          <div class="aff-header">
+            <strong>{{ aff.site_nom || aff.site }}</strong>
+            <span class="status-badge" [class]="aff.statut">{{ aff.statut }}</span>
+          </div>
+          <div class="aff-details">
+            <span>{{ aff.date_debut | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/mes-affectations" class="secondary-button">View All My Assignments</button>
+      </div>
+    </article>
+
+    <article class="panel quick-links">
+      <div class="panel-header">
+        <p class="panel-subtitle">Quick Access</p>
+        <h2>Navigation</h2>
+      </div>
+      <div class="links-grid">
+        <a routerLink="/map" class="link-button">
+          <span class="icon">Map</span>
+          <span class="text">Site Map</span>
+        </a>
+        <a routerLink="/mes-affectations" class="link-button">
+          <span class="icon">List</span>
+          <span class="text">My Assignments</span>
+        </a>
+        <a routerLink="/agent-profile" class="link-button">
+          <span class="icon">Profile</span>
+          <span class="text">My Profile</span>
+        </a>
+        <button class="link-button" (click)="logout()">
+          <span class="icon">Logout</span>
+          <span class="text">Sign Out</span>
+        </button>
+      </div>
+    </article>
+  </section>
+</div>

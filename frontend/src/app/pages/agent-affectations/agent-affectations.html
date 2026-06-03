@@ -1,0 +1,45 @@
+<div style="padding:2rem">
+  <div style="margin-bottom:1.5rem">
+    <h2 style="color:#1a237e; font-size:1.3rem; font-weight:600">My Assignments</h2>
+    <p style="color:#6B7280; font-size:13px; margin-top:2px">
+      List of your assignments at STB sites
+    </p>
+  </div>
+
+  <div *ngIf="loading" style="text-align:center; padding:3rem; color:#6B7280">
+    Loading...
+  </div>
+
+  <div *ngIf="!loading && affectations.length === 0"
+    style="background:white; border-radius:12px; padding:3rem; text-align:center;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06); color:#9CA3AF">
+    <div style="font-size:3rem; margin-bottom:1rem">📋</div>
+    <p>No assignments at the moment.</p>
+    <p style="font-size:12px; margin-top:4px">Contact the administrator for more information.</p>
+  </div>
+
+  <table *ngIf="!loading && affectations.length > 0">
+    <thead>
+      <tr>
+        <th>Site</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let af of affectations">
+        <td style="font-weight:500; color:#1a237e">{{ af.site_nom }}</td>
+        <td>{{ af.date_debut | date:'dd/MM/yyyy' }}</td>
+        <td>{{ af.date_fin ? (af.date_fin | date:'dd/MM/yyyy') : '—' }}</td>
+        <td>
+          <span [style.background]="af.statut === 'en cours' ? '#E8F5E9' : '#F3F4F6'"
+                [style.color]="af.statut === 'en cours' ? '#2E7D32' : '#6B7280'"
+                style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:500">
+            {{ af.statut }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

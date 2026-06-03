@@ -1,0 +1,121 @@
+<div style="padding:2rem; min-height:100vh">
+  <div style="max-width:1000px; margin:0 auto">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:1.5rem">🎫</span>
+        <div>
+          <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">My Tickets</h1>
+          <p style="color:#94a3b8; font-size:13px; margin-top:2px">Submit and track your requests</p>
+        </div>
+      </div>
+      <button (click)="showForm = !showForm"
+        style="padding:10px 20px; background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); border-radius:8px; cursor:pointer; font-weight:700; font-size:13px; transition:all 0.2s">
+        {{ showForm ? '✕ Cancel' : '+ New Ticket' }}
+      </button>
+    </div>
+
+    <div style="height:1px; background:rgba(148,163,184,0.12); margin-bottom:1.5rem"></div>
+
+    <!-- New Ticket Form -->
+    <div *ngIf="showForm"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem">
+      <h3 style="color:#f8fafc; margin-bottom:1.25rem; font-size:1.1rem; font-weight:700">New Ticket</h3>
+
+      <!-- Ticket Type Selection -->
+      <div style="margin-bottom:1.25rem">
+        <label style="display:block; color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px">Request Type *</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px">
+          <button *ngFor="let tt of ticketTypes"
+            (click)="form.type = tt.value"
+            [style.background]="form.type === tt.value ? 'rgba(99,102,241,0.15)' : 'rgba(30,41,59,0.5)'"
+            [style.border]="form.type === tt.value ? '2px solid rgba(99,102,241,0.5)' : '1px solid rgba(148,163,184,0.12)'"
+            [style.color]="form.type === tt.value ? '#a5b4fc' : '#94a3b8'"
+            style="padding:16px 12px; border-radius:10px; cursor:pointer; text-align:center; transition:all 0.2s">
+            <div style="font-size:20px; margin-bottom:6px">{{ tt.label.split(' ')[0] }}</div>
+            <div style="font-size:12px; font-weight:700">{{ tt.label.substring(tt.label.indexOf(' ') + 1) }}</div>
+            <div style="font-size:11px; margin-top:4px; opacity:0.7">{{ tt.description }}</div>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+        <div>
+          <label style="display:block; color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px">Start Date *</label>
+          <input type="date" [(ngModel)]="form.date_debut" style="width:100%">
+        </div>
+        <div>
+          <label style="display:block; color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px">End Date (optional)</label>
+          <input type="date" [(ngModel)]="form.date_fin" style="width:100%">
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.25rem">
+        <label style="display:block; color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px">Reason / Details *</label>
+        <textarea [(ngModel)]="form.motif" rows="3" placeholder="Describe your request..."
+          style="width:100%; padding:10px; background:rgba(30,41,59,0.6); border:1px solid rgba(148,163,184,0.15); border-radius:8px; color:#e2e8f0; font-size:13px; resize:vertical; box-sizing:border-box"></textarea>
+      </div>
+
+      <button (click)="submitTicket()" [disabled]="saving"
+        style="width:100%; padding:14px; background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); border-radius:8px; cursor:pointer; font-weight:700; font-size:14px; transition:all 0.2s">
+        {{ saving ? 'Submitting...' : '🎫 Submit Ticket' }}
+      </button>
+    </div>
+
+    <!-- Tickets List -->
+    <div *ngIf="loading" style="text-align:center; padding:3rem; color:#94a3b8">Loading tickets...</div>
+
+    <div *ngIf="!loading && tickets.length === 0"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:3rem; text-align:center; color:#64748b">
+      <div style="font-size:2rem; margin-bottom:0.5rem">📋</div>
+      <p>No tickets yet. Click "+ New Ticket" to create one.</p>
+    </div>
+
+    <div *ngFor="let ticket of tickets"
+      style="background:rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:12px; padding:1.25rem; margin-bottom:0.75rem; display:flex; align-items:center; gap:16px">
+
+      <!-- Type Icon -->
+      <div style="width:48px; height:48px; border-radius:12px; background:rgba(30,41,59,0.8); border:1px solid rgba(148,163,184,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0">
+        {{ ticket.type === 'conge' ? '🏖️' : ticket.type === 'attestation_presence' ? '📋' : '💼' }}
+      </div>
+
+      <!-- Info -->
+      <div style="flex:1; min-width:0">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+          <span style="font-weight:700; color:#f8fafc; font-size:14px">{{ getTypeLabel(ticket.type) }}</span>
+          <span [style.background]="getStatusStyle(ticket.statut, ticket.chef_approved).background"
+                [style.color]="getStatusStyle(ticket.statut, ticket.chef_approved).color"
+                [style.border]="getStatusStyle(ticket.statut, ticket.chef_approved).border"
+                style="padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700; text-transform:uppercase">
+            {{ getStatusLabel(ticket.statut, ticket.chef_approved) }}
+          </span>
+        </div>
+        <div style="font-size:13px; color:#94a3b8">
+          {{ ticket.date_debut | date:'dd/MM/yyyy' }}
+          <span *ngIf="ticket.date_fin"> → {{ ticket.date_fin | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div style="font-size:12px; color:#64748b; margin-top:4px">{{ ticket.motif }}</div>
+        <div *ngIf="ticket.validated_by_name" style="font-size:11px; color:#64748b; margin-top:4px">
+          Reviewed by: {{ ticket.validated_by_name }}
+        </div>
+      </div>
+
+      <!-- Delete button (only for pending non-approved tickets) -->
+      <button *ngIf="canDelete(ticket)" (click)="deleteTicket(ticket.id)"
+        style="color:#fca5a5; background:none; border:1px solid rgba(239,68,68,0.3); cursor:pointer; font-size:12px; padding:6px 12px; border-radius:6px; font-weight:600; transition:all 0.2s; flex-shrink:0">
+        Delete
+      </button>
+    </div>
+
+    <!-- Toast -->
+    <div *ngIf="toast"
+      [style.background]="toast.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'"
+      [style.border]="toast.type === 'success' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'"
+      [style.color]="toast.type === 'success' ? '#86efac' : '#fca5a5'"
+      style="position:fixed; bottom:2rem; right:2rem; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; z-index:1000; display:flex; align-items:center; gap:8px">
+      {{ toast.type === 'success' ? '✅' : '❌' }} {{ toast.message }}
+    </div>
+
+  </div>
+</div>

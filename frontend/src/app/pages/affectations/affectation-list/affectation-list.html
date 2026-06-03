@@ -1,0 +1,106 @@
+<div style="padding:2rem">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+    <div>
+      <h1 style="font-size:1.5rem; color:#f8fafc; margin:0">{{ isAgent() ? 'My Assignments' : 'Assignments' }}</h1>
+      <p style="color:#94a3b8; font-size:13px; margin-top:4px">{{ affectations.length }} assignment(s)</p>
+    </div>
+    <button *ngIf="canCreate()" (click)="showForm = !showForm"
+      style="padding:8px 16px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3); border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s">
+      {{ showForm ? '✕ Cancel' : '+ New Assignment' }}
+    </button>
+  </div>
+
+  <div *ngIf="isAgent()" style="background:rgba(148,163,184,0.1); padding:1rem; border-radius:8px; margin-bottom:1.5rem; color:#94a3b8; font-size:14px; border:1px solid rgba(148,163,184,0.12)">
+    📋 Read-only view. Contact your team leader for any modifications.
+  </div>
+
+  <div *ngIf="showForm"
+    style="background:rgba(15,23,42,0.8); padding:1.5rem; border-radius:12px; border:1px solid rgba(148,163,184,0.12); margin-bottom:1.5rem">
+    <h3 style="margin-bottom:1rem; font-size:15px; color:#f8fafc">New Assignment</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+        <div>
+          <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Agent *</label>
+          <select formControlName="agent_id">
+            <option value="">-- Choose an agent --</option>
+            <option *ngFor="let a of agents" [value]="a.id">
+              {{ a.prenom }} {{ a.nom }} ({{ a.matricule }})
+            </option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Site *</label>
+          <select formControlName="site_id">
+            <option value="">-- Choose a site --</option>
+            <option *ngFor="let s of sites" [value]="s.id">{{ s.nom }}</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Start Date *</label>
+          <input formControlName="date_debut" type="date" (change)="onDurationChange()">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">Duration</label>
+          <select formControlName="duree" (change)="onDurationChange()">
+            <option value="">-- Custom --</option>
+            <option value="3">3 Months</option>
+            <option value="6">6 Months</option>
+            <option value="12">1 Year</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:4px; font-size:13px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em">End Date</label>
+          <input formControlName="date_fin" type="date">
+        </div>
+      </div>
+      <div *ngIf="error" style="color:#ef4444; font-size:13px; margin-bottom:1rem; padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px">{{ error }}</div>
+      <button type="submit"
+        style="padding:10px 20px; background:rgba(239,68,68,0.2); color:#fecaca; border:1px solid rgba(239,68,68,0.3); border-radius:8px; cursor:pointer; font-size:14px; font-weight:600">
+        Create Assignment
+      </button>
+    </form>
+  </div>
+
+  <div *ngIf="loading" style="color:#94a3b8; padding:2rem; text-align:center">Loading...</div>
+
+  <table *ngIf="!loading">
+    <thead>
+      <tr>
+        <th>Agent</th>
+        <th>Site</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Status</th>
+        <th *ngIf="canDelete()">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let af of affectations">
+        <td style="font-weight:500; color:#f8fafc">{{ af.agent_nom }}</td>
+        <td>{{ af.site_nom }}</td>
+        <td>{{ af.date_debut | date:'dd/MM/yyyy' }}</td>
+        <td>{{ af.date_fin ? (af.date_fin | date:'dd/MM/yyyy') : '-' }}</td>
+        <td>
+          <span [style.background]="af.statut === 'active' ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.15)'"
+                [style.color]="af.statut === 'active' ? '#86efac' : '#94a3b8'"
+                [style.border]="af.statut === 'active' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(148,163,184,0.3)'"
+                style="padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600">
+            {{ af.statut }}
+          </span>
+        </td>
+        <td *ngIf="canDelete()">
+          <button (click)="delete(af.id)"
+            style="color:#fca5a5; background:none; border:1px solid rgba(239,68,68,0.3); cursor:pointer; font-size:12px; padding:3px 10px; border-radius:6px; font-weight:600">
+            Delete
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="affectations.length === 0">
+        <td [attr.colspan]="canDelete() ? 6 : 5"
+          style="padding:2rem; text-align:center; color:#64748b; font-size:14px">
+          No assignments found
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,88 @@
+<div style="display:flex; gap:1.5rem; padding:2rem">
+  <!-- Left: Site Management Table -->
+  <div style="flex:1; min-width:0">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+      <div>
+        <h1 style="color:#f8fafc; font-size:1.5rem; margin:0">Site Management</h1>
+        <p style="color:#94a3b8; font-size:13px; margin-top:4px">{{ sites.length }} site(s)</p>
+      </div>
+      <a *ngIf="isAdmin()" routerLink="/sites/new"
+        style="padding:8px 16px; background:rgba(239,68,68,0.2); color:#fecaca; text-decoration:none; border-radius:8px; font-size:13px; font-weight:600; border:1px solid rgba(239,68,68,0.3)">
+        + Add Site
+      </a>
+    </div>
+
+    <div *ngIf="loading" style="color:#94a3b8; padding:2rem; text-align:center">Loading...</div>
+
+    <div *ngIf="!loading && sites.length === 0"
+      style="background:rgba(15,23,42,0.8); color:#94a3b8; padding:2rem; border-radius:12px; border:1px solid rgba(148,163,184,0.12); text-align:center">
+      No sites found.
+    </div>
+
+    <div *ngIf="!loading && sites.length > 0" style="background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.15); border-radius:12px; overflow:hidden">
+      <table style="margin:0; border:none; border-radius:0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>City</th>
+            <th>Status</th>
+            <th *ngIf="isAdmin()">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of sites">
+            <td style="font-weight:600; color:#f1f5f9">{{ s.nom }}</td>
+            <td style="color:#cbd5e1">{{ s.ville }}</td>
+            <td>
+              <span [style.background]="s.statut === 'actif' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'"
+                    [style.color]="s.statut === 'actif' ? '#86efac' : '#fca5a5'"
+                    [style.border]="s.statut === 'actif' ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'"
+                    style="padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600">
+                {{ s.statut }}
+              </span>
+            </td>
+            <td *ngIf="isAdmin()">
+              <a [routerLink]="['/sites/edit', s.id]"
+                style="color:#ef4444; font-size:12px; margin-right:10px; text-decoration:none; font-weight:600">Edit</a>
+              <button (click)="delete(s.id)"
+                style="color:#fca5a5; background:none; border:1px solid rgba(239,68,68,0.3); cursor:pointer; font-size:12px; padding:2px 8px; border-radius:6px; font-weight:600">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right: Map -->
+  <div style="width:420px; flex-shrink:0">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem">
+      <h3 style="color:#f8fafc; font-size:1rem; margin:0">Map View</h3>
+      <div style="display:flex; gap:8px; align-items:center">
+        <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:#94a3b8">
+          <div style="width:12px; height:12px; border-radius:50%; background:#0066CC; border:2px solid #1e293b; box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+          STB
+        </div>
+        <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:#94a3b8">
+          <div style="width:10px; height:10px; border-radius:50%; background:#22c55e"></div>
+          Active
+        </div>
+        <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:#94a3b8">
+          <div style="width:10px; height:10px; border-radius:50%; background:#ef4444"></div>
+          Inactive
+        </div>
+        <button *ngIf="isAdmin()" (click)="toggleStbAgencies()"
+          [style.background]="showStbAgencies ? 'rgba(239,68,68,0.2)' : 'rgba(148,163,184,0.2)'"
+          [style.color]="showStbAgencies ? '#fecaca' : '#94a3b8'"
+          [style.border]="showStbAgencies ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(148,163,184,0.2)'"
+          style="padding:4px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600">
+          {{ showStbAgencies ? 'Hide' : 'Show' }} STB
+        </button>
+      </div>
+    </div>
+
+    <div style="height:340px; border-radius:12px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.3); border:1px solid rgba(148,163,184,0.15)">
+      <div id="stb-map" style="height:100%; width:100%"></div>
+    </div>
+
+  </div>
+</div>
