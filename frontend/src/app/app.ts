@@ -1,4 +1,4 @@
-// navbar + routed page. re-fetch /me on app start if a token survives a refresh.
+// Root component: navbar + router outlet.
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar';

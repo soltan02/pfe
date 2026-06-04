@@ -1,9 +1,5 @@
 // Demandes (tickets) endpoints.
-// A demande is a request an agent submits (leave, attendance cert, work cert).
-// Workflow:
-//   agent creates -> pending  ->  chef approves (chef_approved=true)  ->
-//   admin gives the final stamp (statut='approved' or 'rejected').
-// So an admin only sees demandes that have already cleared the chef stage.
+// Two-step approval: agent -> chef -> admin.
 
 const router = require('express').Router();
 const pool = require('../config/db');

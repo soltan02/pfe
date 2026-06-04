@@ -1,5 +1,4 @@
-// Rapports (incident/absence/health/other reports) endpoints.
-// A rapport is created by a chef about an agent and validated by an admin.
+// Rapports (incident/absence/health/other) endpoints.
 
 const router = require('express').Router();
 const pool = require('../config/db');

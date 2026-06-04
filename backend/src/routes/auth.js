@@ -1,6 +1,4 @@
-// Authentication endpoints: login, /me lookup, admin password & role management.
-// JWTs are signed with JWT_SECRET and include id/email/role so the frontend
-// can decode the role locally without a round-trip.
+// Authentication endpoints: login, /me, admin password & role management.
 
 const express = require('express');
 const router = express.Router();

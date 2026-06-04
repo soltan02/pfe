@@ -1,7 +1,4 @@
-// HTTP interceptor: attaches the JWT to every outgoing request.
-// Runs as part of the chain registered in app.config.ts via withInterceptors().
-// If there is no token, the request is forwarded unchanged (the login request
-// itself needs to be able to go through without an Authorization header).
+// Attaches the JWT to every outgoing request when a token is stored.
 
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';

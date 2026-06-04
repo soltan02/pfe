@@ -1,11 +1,5 @@
 // Agents endpoints.
-// An "agent" here is the on-the-ground security staff member; a separate
-// "user" account is created automatically when an agent is added so they can
-// log in (login = matricule, password = matricule by default).
-//
-// Visibility:
-//   - admin sees every agent (and the site + chef for each one)
-//   - chef_equipe only sees agents assigned to their site(s)
+// Visibility: admin sees everything, chef_equipe sees their site only.
 
 const router = require('express').Router();
 const pool = require('../config/db');

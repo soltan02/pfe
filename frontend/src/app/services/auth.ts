@@ -1,7 +1,4 @@
-// AuthService — the single source of truth for "who is the current user".
-// Components subscribe to `currentUser$` to react to login/logout/profile
-// changes. The token itself lives in localStorage so a hard refresh keeps
-// the session alive.
+// Auth state + token storage. Subscribed to via currentUser$.
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';

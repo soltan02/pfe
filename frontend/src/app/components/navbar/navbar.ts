@@ -1,7 +1,4 @@
-// Top navigation bar. Subscribes to AuthService.currentUser$ so it can show
-// the current user + the role-appropriate menu items. ChangeDetectorRef is
-// triggered manually because we update state from inside an RxJS subscription,
-// which doesn't run inside Angular's default zone.
+// Top navigation bar.
 
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';

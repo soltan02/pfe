@@ -1,5 +1,4 @@
-// User-self-service endpoints: edit your own profile, change your own password.
-// Admin password/role changes live in routes/auth.js because they target other users.
+// User self-service: own profile, own password.
 
 const router = require('express').Router();
 const pool = require('../config/db');

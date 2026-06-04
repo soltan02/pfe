@@ -1,11 +1,5 @@
-// Route guard. Two responsibilities:
-//   1. Make sure the user is logged in (token in localStorage).
-//   2. Enforce the role(s) declared in the route's `data` field, e.g.
-//        { path: 'sites', component: SiteListComponent, data: { allowedRoles: ['admin'] } }
-//
-// The allowedRoles check uses the same numeric scale as the backend's roles.js
-// (agent=1, chef=2, admin=3), so listing `['agent']` actually means "agent
-// and above" — which is what you usually want.
+// Route guard: must be logged in + must satisfy data.allowedRoles.
+// Levels: agent=1, chef_equipe=2, admin=3 (matches backend roles.js).
 
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';

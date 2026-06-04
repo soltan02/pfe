@@ -1,8 +1,6 @@
 // PostgreSQL connection pool.
-// Two supported configurations:
-//   1. Single DATABASE_URL (typical of hosted environments like Render/Heroku).
-//   2. Individual DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME vars (typical local dev).
-// Set DB_SSL=true when connecting to a hosted Postgres that requires SSL.
+// Uses DATABASE_URL when set, otherwise the individual DB_* env vars.
+// Set DB_SSL=true when the server requires SSL.
 require('dotenv').config();
 const { Pool } = require('pg');
 
@@ -23,8 +21,6 @@ const pool = new Pool(
       }
 );
 
-// Eagerly verify the connection at startup so misconfiguration fails fast
-// instead of failing on the first incoming request.
 pool.connect((err, client, release) => {
   if (err) {
     console.error('DB connection failed:', err.stack);

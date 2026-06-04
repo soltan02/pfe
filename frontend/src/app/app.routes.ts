@@ -1,4 +1,4 @@
-// route table. AuthGuard checks login + role from data.allowedRoles
+// Route table. AuthGuard checks login + role from data.allowedRoles.
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login';
 import { DashboardComponent } from './pages/dashboard/dashboard';

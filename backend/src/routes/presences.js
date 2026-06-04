@@ -1,12 +1,5 @@
 // Presence (pointage) endpoints.
-// Records the daily attendance of an agent: present / absent / retard (late) / conge.
-// Two main consumers:
-//   - The pointage page (chef_equipe) records and reviews team attendance.
-//   - The agent dashboard reads the current agent's monthly summary.
-//
-// getChefSiteId() is a small helper that resolves the site a chef is in charge of.
-// It looks at the sites.chef_id column first, then falls back to any site the
-// chef-user happens to be assigned to as an agent (rare but supported).
+// Records daily attendance: present / absent / retard / conge.
 
 const router = require('express').Router();
 const pool = require('../config/db');
