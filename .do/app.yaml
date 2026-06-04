@@ -1,0 +1,69 @@
+# DigitalOcean App Platform spec for STB Security
+# https://docs.digitalocean.com/products/app-platform/concepts/app-specification/
+#
+# This file is optional. You can also configure the app entirely in the
+# cloud.digitalocean.com UI. If you keep it, App Platform reads it when you
+# create the app and uses it as the source of truth for components.
+#
+# Required env vars to set in the UI (or as secrets):
+#   - DATABASE_URL  : the connection string of your Managed Postgres
+#   - JWT_SECRET    : a long random string
+#   - DB_SSL=true   : managed Postgres requires SSL
+#   - FRONTEND_URL  : public URL of the frontend component, set after first deploy
+
+name: stb-security
+region: nyc
+# Uncomment the next line to point at a specific branch.
+# branch: main
+
+services:
+  # ---------- Backend (Node.js / Express API) ----------
+  - name: stb-backend
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs   # $5/mo; bump to basic-xs ($10) or basic-s ($12) under load
+    source_dir: backend
+    build_command: npm install
+    run_command: npm start
+    health_check:
+      http_path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DB_SSL
+        value: "true"
+      # DATABASE_URL and JWT_SECRET should be set as SECRET env vars
+      # in the UI (Settings → Component → Environment Variables → Encrypt).
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: FRONTEND_URL
+        scope: RUN_TIME
+        value: "https://stb-frontend.ondigitalocean.app"
+    routes:
+      - path: /api
+        preserve_url_path: false
+
+  # ---------- Frontend (Angular static site) ----------
+  - name: stb-frontend
+    source_dir: frontend
+    static_sites:
+      - build_command: npm install && npm run build
+        output_dir: dist/frontend/browser
+        index_document: index.html
+        error_document: index.html   # required for Angular client-side routing
+        routes:
+          - path: /
+
+# ---------- Managed PostgreSQL ----------
+# Uncomment and adjust to provision a database together with the app.
+# databases:
+#   - name: stb-db
+#     engine: PG
+#     version: "16"
+#     size: db-s-1vcpu-1gb          # $15/mo
+#     num_nodes: 1
+#     production: false             # set to true for HA when you go live
