@@ -5,13 +5,13 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AgentsService } from '../../../services/agents';
 import { AuthService } from '../../../services/auth';
 
-// Custom validators
+// Form-level validators. Returning `null` means "no error" — that's the
+// convention Angular Reactive Forms expects.
 const numbersOnly = (control: AbstractControl) => {
   if (!control.value) return null;
   return /^\d+$/.test(control.value) ? null : { numbersOnly: true };
 };
 
-// Add a new validator for exactly 8 digits:
 const phone8digits = (control: AbstractControl) => {
   if (!control.value) return null;
   if (!/^\d+$/.test(control.value)) return { numbersOnly: true };
@@ -78,7 +78,6 @@ export class AgentFormComponent implements OnInit {
     return this.user?.role === 'admin';
   }
 
-  // helper to check if field has a specific error
   hasError(field: string, error: string) {
     const c = this.form.get(field);
     return c?.hasError(error) && c?.touched;
@@ -102,7 +101,6 @@ export class AgentFormComponent implements OnInit {
   } else {
     this.agentsService.create(this.form.value).subscribe({
       next: (res: any) => {
-        // Show credentials before navigating
         const matricule = this.form.value.matricule;
         const roleLabel = res.login_info?.role === 'chef_equipe' ? 'Team Leader' : 'Agent';
         alert(

@@ -1,0 +1,42 @@
+node_modules/
+dist/
+build/
+coverage/
+
+# env files
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Angular
+.angular/
+.angular/cache/
+
+# Local build artifacts
+.netlify/
+.qodo/
+
+# AI coding tool traces (Copilot, Cline, Cursor, Aider, Continue, Qodo, MCP)
+.claude/
+.cursor/
+.aider*
+.continue/
+.mcp.json
+focus_chain_taskid*.md
+*.todo.md
+
+# Build logs and one-off outputs
+build.log
+build.txt
+*.tsbuildinfo

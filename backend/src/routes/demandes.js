@@ -1,15 +1,23 @@
+// Demandes (tickets) endpoints.
+// A demande is a request an agent submits (leave, attendance cert, work cert).
+// Workflow:
+//   agent creates -> pending  ->  chef approves (chef_approved=true)  ->
+//   admin gives the final stamp (statut='approved' or 'rejected').
+// So an admin only sees demandes that have already cleared the chef stage.
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const verifyToken = require('../middleware/auth');
 const role = require('../middleware/roles');
 
-// GET - Agent's own requests
+// GET /api/demandes/my-requests — agent lists their own demandes.
 router.get('/my-requests', verifyToken, role('agent'), async (req, res) => {
   try {
     const userResult = await pool.query(
       'SELECT agent_id FROM users WHERE id = $1', [req.user.id]
     );
     const agentId = userResult.rows[0]?.agent_id;
+    // No linked agent record (e.g. an admin-only user) -> return empty list.
     if (!agentId) return res.json([]);
 
     const r = await pool.query(
@@ -21,12 +29,12 @@ router.get('/my-requests', verifyToken, role('agent'), async (req, res) => {
       [agentId]
     );
     res.json(r.rows);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// POST - Agent creates a request
+// POST /api/demandes/my-requests — agent creates a new demande.
 router.post('/my-requests', verifyToken, role('agent'), async (req, res) => {
   try {
     const userResult = await pool.query(
@@ -40,48 +48,45 @@ router.post('/my-requests', verifyToken, role('agent'), async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Validate type
+    // Restrict `type` to a known set so downstream reports can group by it.
     const validTypes = ['conge', 'attestation_presence', 'attestation_travail'];
     if (!validTypes.includes(type)) {
       return res.status(400).json({ error: 'Invalid demand type' });
     }
 
     const r = await pool.query(
-      `INSERT INTO demandes (agent_id, type, date_debut, date_fin, motif, statut, chef_approved, created_at) 
-       VALUES ($1, $2, $3, $4, $5, 'pending', FALSE, NOW()) 
+      `INSERT INTO demandes (agent_id, type, date_debut, date_fin, motif, statut, chef_approved, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', FALSE, NOW())
        RETURNING *`,
       [agentId, type, date_debut, date_fin || null, motif]
     );
 
     res.status(201).json(r.rows[0]);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// GET - Chef views requests from agents at their sites (only pending ones needing chef approval)
+// GET /api/demandes/team-requests — chef sees the demandes from agents
+// assigned to one of their sites.
 router.get('/team-requests', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
-    // sites du chef
     const sitesResult = await pool.query(
       'SELECT id, nom FROM sites WHERE chef_id = $1',
       [req.user.id]
     );
     const siteIds = sitesResult.rows.map(r => r.id);
-
     if (siteIds.length === 0) return res.json([]);
 
-    // agents affectés à ces sites
     const agentsResult = await pool.query(
       `SELECT DISTINCT agent_id FROM affectations WHERE site_id = ANY($1)`,
       [siteIds]
     );
     const agentIds = agentsResult.rows.map(r => r.agent_id);
-
     if (agentIds.length === 0) return res.json([]);
 
     const r = await pool.query(
-      `SELECT d.*, 
+      `SELECT d.*,
               ag.nom || ' ' || ag.prenom AS agent_name,
               ag.matricule AS agent_matricule
        FROM demandes d
@@ -92,17 +97,18 @@ router.get('/team-requests', verifyToken, role('chef_equipe'), async (req, res) 
     );
 
     res.json(r.rows);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// GET - Admin views all requests that are chef-approved (waiting for admin approval) + all processed
+// GET /api/demandes — admin sees everything; chefs see their team (same logic as
+// /team-requests but for both pending and processed items).
 router.get('/', verifyToken, async (req, res) => {
   try {
     if (req.user.role === 'admin') {
       const r = await pool.query(
-        `SELECT d.*, 
+        `SELECT d.*,
                 ag.nom || ' ' || ag.prenom AS agent_name,
                 ag.matricule AS agent_matricule,
                 u.nom AS validated_by_name
@@ -114,13 +120,11 @@ router.get('/', verifyToken, async (req, res) => {
       return res.json(r.rows);
     }
 
-    // Chef sees their team's requests
     const sitesResult = await pool.query(
       'SELECT id FROM sites WHERE chef_id = $1',
       [req.user.id]
     );
     const siteIds = sitesResult.rows.map(r => r.id);
-
     if (siteIds.length === 0) return res.json([]);
 
     const agentsResult = await pool.query(
@@ -128,11 +132,10 @@ router.get('/', verifyToken, async (req, res) => {
       [siteIds]
     );
     const agentIds = agentsResult.rows.map(r => r.agent_id);
-
     if (agentIds.length === 0) return res.json([]);
 
     const r = await pool.query(
-      `SELECT d.*, 
+      `SELECT d.*,
               ag.nom || ' ' || ag.prenom AS agent_name,
               ag.matricule AS agent_matricule,
               u.nom AS validated_by_name
@@ -145,12 +148,12 @@ router.get('/', verifyToken, async (req, res) => {
     );
 
     res.json(r.rows);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// PUT - Chef approves a request (sets chef_approved = true)
+// PUT /api/demandes/:id/chef-approve — first step of approval.
 router.put('/:id/chef-approve', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -163,12 +166,13 @@ router.put('/:id/chef-approve', verifyToken, role('chef_equipe'), async (req, re
     }
 
     res.json(r.rows[0]);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// PUT - Chef rejects a request
+// PUT /api/demandes/:id/chef-reject — chef rejects; status moves to 'rejected'
+// and chef_approved is reset so the admin side stays consistent.
 router.put('/:id/chef-reject', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -181,12 +185,13 @@ router.put('/:id/chef-reject', verifyToken, role('chef_equipe'), async (req, res
     }
 
     res.json(r.rows[0]);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// PUT - Admin approves a request (final approval)
+// PUT /api/demandes/:id/admin-approve — final approval. The chef_approved
+// precondition enforces the two-step workflow.
 router.put('/:id/admin-approve', verifyToken, role('admin'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -199,12 +204,12 @@ router.put('/:id/admin-approve', verifyToken, role('admin'), async (req, res) =>
     }
 
     res.json(r.rows[0]);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// PUT - Admin rejects a request
+// PUT /api/demandes/:id/admin-reject — admin can reject at any stage.
 router.put('/:id/admin-reject', verifyToken, role('admin'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -217,12 +222,13 @@ router.put('/:id/admin-reject', verifyToken, role('admin'), async (req, res) => 
     }
 
     res.json(r.rows[0]);
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// DELETE - Delete a request (admin only or agent's own pending request)
+// DELETE /api/demandes/:id — admins can delete anything; agents can only delete
+// their own demandes that are still pending (not yet seen by the chef).
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     if (req.user.role === 'admin') {
@@ -234,7 +240,6 @@ router.delete('/:id', verifyToken, async (req, res) => {
       return res.json({ message: 'Request deleted' });
     }
 
-    // Agent can only delete their own pending requests (not yet chef-approved)
     const userResult = await pool.query(
       'SELECT agent_id FROM users WHERE id = $1', [req.user.id]
     );
@@ -244,14 +249,14 @@ router.delete('/:id', verifyToken, async (req, res) => {
       'DELETE FROM demandes WHERE id=$1 AND agent_id=$2 AND statut=$3 AND chef_approved=FALSE RETURNING id',
       [req.params.id, agentId, 'pending']
     );
-    
+
     if (!r.rows.length) {
       return res.status(404).json({ error: 'Request not found or cannot be deleted' });
     }
-    
+
     res.json({ message: 'Request deleted' });
-  } catch(e) { 
-    res.status(500).json({ error: e.message }); 
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 

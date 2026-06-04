@@ -45,7 +45,6 @@ export class SiteListComponent implements OnInit {
     });
   }
 
-  // Role-based checks
   isAdmin(): boolean {
     return this.user?.role === 'admin';
   }

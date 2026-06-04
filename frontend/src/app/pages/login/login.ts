@@ -1,3 +1,4 @@
+// login page. on success: stash token, seed currentUser$, go to /dashboard.
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';

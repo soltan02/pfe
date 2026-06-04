@@ -110,7 +110,6 @@ export class TicketsComponent implements OnInit {
   }
 
   getStatusStyle(statut: string, chefApproved: boolean) {
-    // Determine display status
     let key = statut;
     if (statut === 'pending' && chefApproved) key = 'chef_approved';
     const s = this.statusMap[key] || this.statusMap['pending'];

@@ -1,9 +1,11 @@
+// Rapports (incident/absence/health/other reports) endpoints.
+// A rapport is created by a chef about an agent and validated by an admin.
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const verifyToken = require('../middleware/auth');
 const role = require('../middleware/roles');
 
-// GET - Chef's reports (all reports, visible to chef_equipe and above)
 router.get('/', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -22,12 +24,11 @@ router.get('/', verifyToken, role('chef_equipe'), async (req, res) => {
        ORDER BY r.date DESC`
     );
     res.json(r.rows);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// POST - Create report
 router.post('/', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const { agent_id, type, contenu, date } = req.body;
@@ -35,6 +36,8 @@ router.post('/', verifyToken, role('chef_equipe'), async (req, res) => {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
+    // The rapport inherits the agent's current site (if any) so the report
+    // is searchable by site even after the agent moves.
     const siteResult = await pool.query(
       `SELECT site_id FROM affectations
        WHERE agent_id = $1
@@ -45,19 +48,20 @@ router.post('/', verifyToken, role('chef_equipe'), async (req, res) => {
     const siteId = siteResult.rows[0]?.site_id || null;
 
     const r = await pool.query(
-      `INSERT INTO rapports (agent_id, site_id, type, contenu, date, statut, created_at, created_by) 
-       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), $6) 
+      `INSERT INTO rapports (agent_id, site_id, type, contenu, date, statut, created_at, created_by)
+       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), $6)
        RETURNING *`,
       [agent_id, siteId, type, contenu, date, req.user.id]
     );
 
     res.status(201).json(r.rows[0]);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// GET - Admin view all reports (with chef name and chef's managed site)
+// GET /api/rapports/admin/all — admin-only view of all rapports
+// (kept separate from / to keep the access rules simple).
 router.get('/admin/all', verifyToken, role('admin'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -74,15 +78,15 @@ router.get('/admin/all', verifyToken, role('admin'), async (req, res) => {
        ORDER BY r.date DESC`
     );
     res.json(r.rows);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// GET - Admin full report for export (rapports + stats)
+// GET /api/rapports/admin/full-report — payload for the admin export (Excel/print).
+// Returns rows + aggregated stats so the export can render summary sheets.
 router.get('/admin/full-report', verifyToken, role('admin'), async (req, res) => {
   try {
-    // All reports with chef info
     const rapports = await pool.query(
       `SELECT r.*,
               COALESCE(ag.nom, 'Agent #' || r.agent_id) AS agent_nom,
@@ -99,7 +103,7 @@ router.get('/admin/full-report', verifyToken, role('admin'), async (req, res) =>
        ORDER BY r.date DESC`
     );
 
-    // Summary stats
+    // FILTER (...) lets us compute conditional counts in a single scan.
     const stats = await pool.query(
       `SELECT
         COUNT(*) AS total_reports,
@@ -112,7 +116,6 @@ router.get('/admin/full-report', verifyToken, role('admin'), async (req, res) =>
        FROM rapports`
     );
 
-    // Reports per chef
     const perChef = await pool.query(
       `SELECT u.nom AS chef_nom, COUNT(*) AS report_count
        FROM rapports r
@@ -121,7 +124,6 @@ router.get('/admin/full-report', verifyToken, role('admin'), async (req, res) =>
        ORDER BY report_count DESC`
     );
 
-    // Reports per site
     const perSite = await pool.query(
       `SELECT s.nom AS site_nom, COUNT(*) AS report_count
        FROM rapports r
@@ -137,12 +139,12 @@ router.get('/admin/full-report', verifyToken, role('admin'), async (req, res) =>
       perSite: perSite.rows,
       generatedAt: new Date()
     });
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// PUT - Admin validate report
+// PUT /api/rapports/:id/validate — admin approves a rapport.
 router.put('/:id/validate', verifyToken, role('admin'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -152,7 +154,7 @@ router.put('/:id/validate', verifyToken, role('admin'), async (req, res) => {
     );
     if (r.rows.length === 0) return res.status(404).json({ error: 'Report not found' });
     res.json(r.rows[0]);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });

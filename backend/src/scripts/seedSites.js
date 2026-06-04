@@ -1,3 +1,7 @@
+// Populate the sites table with the real STB bank-branch list across Tunisia.
+// Idempotent: each agency is only inserted if no site with the same name
+// already exists, so this script is safe to re-run.
+
 require('dotenv').config();
 const pool = require('../config/db');
 
@@ -44,6 +48,7 @@ async function seed() {
       const exists = await pool.query(
         'SELECT id FROM sites WHERE nom = $1', [agency.nom]
       );
+      // Skip agencies that are already in the table.
       if (exists.rows.length === 0) {
         await pool.query(
           'INSERT INTO sites (nom, adresse, ville, statut) VALUES ($1, $2, $3, $4)',

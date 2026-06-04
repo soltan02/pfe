@@ -34,7 +34,6 @@ export class RapportsComponent implements OnInit {
   }
 
   ngOnInit() {
-    // If user already logged in, currentUser$ already has a value
     const currentUser = this.auth.currentUser$.value;
     if (currentUser) {
       this.user = currentUser;

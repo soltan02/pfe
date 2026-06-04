@@ -1,9 +1,26 @@
+// API entry. CORS + routes.
+
 require('./config/db');
 const express = require('express');
 const cors = require('cors');
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:4200',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // no origin = curl / same-origin, always allow
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
+    return cb(new Error('Origin not allowed'));
+  },
+  credentials: true
+}));
 
 app.use(express.json());
 
@@ -11,8 +28,8 @@ app.get('/', (req, res) => {
   res.json({ message: 'STB API running' });
 });
 
-const authRouter = require('./routes/auth');
-app.use('/api/auth', authRouter);
+// /api/* routes — one per entity, see routes/
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/agents', require('./routes/agents'));
 app.use('/api/sites', require('./routes/sites'));
 app.use('/api/affectations', require('./routes/affectations'));
@@ -20,6 +37,8 @@ app.use('/api/presences', require('./routes/presences'));
 app.use('/api/rapports', require('./routes/rapports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/demandes', require('./routes/demandes'));
+
+// dashboard counters — kept here because it touches many tables
 const verifyToken = require('./middleware/auth');
 app.get('/api/dashboard/stats', verifyToken, async (req, res) => {
   try {
@@ -34,8 +53,12 @@ app.get('/api/dashboard/stats', verifyToken, async (req, res) => {
       affectations: parseInt(affectationsResult.rows[0].count),
       users: parseInt(usersResult.rows[0].count)
     });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Server running on port ' + PORT);
 });

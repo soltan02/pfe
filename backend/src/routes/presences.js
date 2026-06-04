@@ -1,9 +1,18 @@
+// Presence (pointage) endpoints.
+// Records the daily attendance of an agent: present / absent / retard (late) / conge.
+// Two main consumers:
+//   - The pointage page (chef_equipe) records and reviews team attendance.
+//   - The agent dashboard reads the current agent's monthly summary.
+//
+// getChefSiteId() is a small helper that resolves the site a chef is in charge of.
+// It looks at the sites.chef_id column first, then falls back to any site the
+// chef-user happens to be assigned to as an agent (rare but supported).
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const verifyToken = require('../middleware/auth');
 const role = require('../middleware/roles');
 
-// récup id du site du chef
 async function getChefSiteId(userId) {
   let r = await pool.query(
     'SELECT id AS site_id FROM sites WHERE chef_id = $1 LIMIT 1',
@@ -22,7 +31,8 @@ async function getChefSiteId(userId) {
   return r.rows[0]?.site_id || null;
 }
 
-// GET - Agents assigned to the chef's site (fallback: all agents)
+// GET /api/presences/team-agents — agents that the current chef can take attendance for.
+// Falls back to *all* agents if the chef has no assigned site.
 router.get('/team-agents', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const siteId = await getChefSiteId(req.user.id);
@@ -52,7 +62,8 @@ router.get('/team-agents', verifyToken, role('chef_equipe'), async (req, res) =>
   }
 });
 
-// GET - All agents list (for attendance tracking participant list)
+// GET /api/presences/agents — same data as /team-agents but accessible to any role
+// (used by the rapports form for the agent picker).
 router.get('/agents', verifyToken, async (req, res) => {
   try {
     const siteId = await getChefSiteId(req.user.id);
@@ -80,7 +91,8 @@ router.get('/agents', verifyToken, async (req, res) => {
   }
 });
 
-// GET - Current user's presence summary for one month
+// GET /api/presences/me/monthly/:month — the current agent's attendance for a month.
+// `:month` is YYYY-MM. Used by the agent dashboard.
 router.get('/me/monthly/:month', verifyToken, async (req, res) => {
   try {
     const { month } = req.params;
@@ -119,7 +131,9 @@ router.get('/me/monthly/:month', verifyToken, async (req, res) => {
   }
 });
 
-// GET - Yearly attendance summary for a specific agent
+// GET /api/presences/yearly/:year?agent_id=...
+// Returns a 12-month array of present/absent/tardy counts. Either a specific agent
+// (via ?agent_id=) or the whole team at the chef's site.
 router.get('/yearly/:year', verifyToken, async (req, res) => {
   try {
     const { year } = req.params;
@@ -156,6 +170,7 @@ router.get('/yearly/:year', verifyToken, async (req, res) => {
 
     const agentIds = agents.map(a => a.id);
 
+    // Single query for the whole year — much cheaper than 12 monthly queries.
     const presencesRes = await pool.query(
       `SELECT agent_id, date, statut
        FROM presences
@@ -165,7 +180,6 @@ router.get('/yearly/:year', verifyToken, async (req, res) => {
       [agentIds, `${year}-01-01`, `${year}-01-01`]
     );
 
-    // Build monthly stats for the selected agent(s)
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -178,11 +192,13 @@ router.get('/yearly/:year', verifyToken, async (req, res) => {
       total: 0
     }));
 
-    // If viewing a specific agent, filter to that agent
+    // When an agent is selected via ?agent_id= we only count rows for that one
+    // agent; otherwise we aggregate over everyone in the site.
     const targetIds = agentId ? [parseInt(agentId)] : agentIds;
 
     for (const p of presencesRes.rows) {
       if (!targetIds.includes(p.agent_id)) continue;
+      // pg returns DATE as a JS Date object; older versions return a string.
       const monthIdx = (p.date instanceof Date ? p.date.getMonth() : new Date(p.date).getMonth());
       const stat = monthlyStats[monthIdx];
       if (!stat) continue;
@@ -212,10 +228,11 @@ router.get('/yearly/:year', verifyToken, async (req, res) => {
   }
 });
 
-// GET - Monthly grid for chef's site agents.
+// GET /api/presences/monthly/:month — full grid (one cell per agent per day)
+// for the pointage page. `:month` is YYYY-MM.
 router.get('/monthly/:month', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
-    const { month } = req.params; // Format: YYYY-MM
+    const { month } = req.params;
     const [yearStr, monthStr] = month.split('-');
     const year = parseInt(yearStr, 10);
     const m = parseInt(monthStr, 10);
@@ -240,6 +257,8 @@ router.get('/monthly/:month', verifyToken, role('chef_equipe'), async (req, res)
       return res.json({ agents: [], days: [], grid: {} });
     }
 
+    // Build the list of date strings for the month so the frontend can render
+    // the column headers without computing them itself.
     const daysInMonth = new Date(year, m, 0).getDate();
     const days = [];
     for (let d = 1; d <= daysInMonth; d++) {
@@ -256,6 +275,7 @@ router.get('/monthly/:month', verifyToken, role('chef_equipe'), async (req, res)
       [agents.map(a => a.id), `${yearStr}-${monthStr}-01`, `${yearStr}-${monthStr}-01`]
     );
 
+    // Initialise every cell to null so the frontend can rely on a complete grid.
     const grid = {};
     for (const a of agents) grid[a.id] = {};
     for (const day of days) {
@@ -281,7 +301,9 @@ router.get('/monthly/:month', verifyToken, role('chef_equipe'), async (req, res)
   }
 });
 
-// POST - Record a single attendance (upsert).
+// POST /api/presences — record (or update) one presence row.
+// ON CONFLICT keeps the latest entry when a chef re-records the same agent on the
+// same day, which is the desired behaviour for a pointage workflow.
 router.post('/', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const { agent_id, date, statut, heure_arrivee, heure_depart } = req.body;
@@ -311,7 +333,9 @@ router.post('/', verifyToken, role('chef_equipe'), async (req, res) => {
   }
 });
 
-// POST - Bulk-record attendance.
+// POST /api/presences/bulk — record the same status for many agents in one call.
+// Verifies that every requested agent is actually assigned to the chef's site
+// so a chef can't accidentally mark attendance for agents they don't manage.
 router.post('/bulk', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const { date, statut, agent_ids, heure_arrivee, heure_depart } = req.body;
@@ -334,6 +358,8 @@ router.post('/bulk', verifyToken, role('chef_equipe'), async (req, res) => {
       return res.status(400).json({ error: 'No valid agents in request' });
     }
 
+    // Build the multi-row INSERT manually so the values list is parameterised
+    // ($1, $2, ...). node-pg expands the array as a single argument.
     const values = [];
     const placeholders = [];
     let i = 1;
@@ -360,7 +386,7 @@ router.post('/bulk', verifyToken, role('chef_equipe'), async (req, res) => {
   }
 });
 
-// DELETE - Remove a single attendance record
+// DELETE /api/presences — remove a single presence record (chef only).
 router.delete('/', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const { agent_id, date } = req.body;
@@ -377,7 +403,7 @@ router.delete('/', verifyToken, role('chef_equipe'), async (req, res) => {
   }
 });
 
-// GET - Daily attendance report
+// GET /api/presences/day/:date — daily attendance report for one specific date.
 router.get('/day/:date', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const { date } = req.params;
@@ -402,6 +428,8 @@ router.get('/day/:date', verifyToken, role('chef_equipe'), async (req, res) => {
     const presenceMap = {};
     for (const p of presencesRes.rows) presenceMap[p.agent_id] = p;
 
+    // Each row in the response has the agent fields plus a nested `presence`
+    // object (or null if no entry was recorded for that day).
     const result = agentsRes.rows.map(ag => ({
       ...ag,
       presence: presenceMap[ag.id] || null

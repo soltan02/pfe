@@ -32,8 +32,6 @@ export class AgentDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // BehaviorSubject guarantees a sync first emission, so the gate below
-    // prevents any HTTP call from racing the auth state on first paint.
     this.auth.currentUser$.subscribe(u => {
       this.user = u;
       if (u) {

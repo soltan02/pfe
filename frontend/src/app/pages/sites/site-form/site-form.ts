@@ -49,14 +49,12 @@ export class SiteFormComponent implements OnInit {
   }
 
   loadChefs() {
-    // First get already assigned chef IDs, then filter them out
     this.http.get<number[]>(`${environment.apiUrl}/sites/assigned-chefs`).subscribe({
       next: (assignedChefIds) => {
         this.http.get<any[]>(`${environment.apiUrl}/auth/users-list`).subscribe({
           next: (users) => {
             this.chefs = users.filter(u =>
               u.role === 'chef_equipe' &&
-              // When editing, include the currently assigned chef in the list
               (!assignedChefIds.includes(u.id) || (this.isEdit && u.id == this.form.get('chef_id')?.value))
             );
           },
@@ -64,7 +62,6 @@ export class SiteFormComponent implements OnInit {
         });
       },
       error: (e) => {
-        // Fallback: load all chefs if assigned-chefs endpoint fails
         console.error('Error loading assigned chefs:', e);
         this.http.get<any[]>(`${environment.apiUrl}/auth/users-list`).subscribe({
           next: (users) => {

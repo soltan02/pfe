@@ -1,3 +1,7 @@
+// Authentication endpoints: login, /me lookup, admin password & role management.
+// JWTs are signed with JWT_SECRET and include id/email/role so the frontend
+// can decode the role locally without a round-trip.
+
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
@@ -16,13 +20,16 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match)
       return res.status(401).json({ error: 'Incorrect email or password' });
+    // small payload — frontend refetches full profile via /me when needed
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     res.json({ token, user: { id: user.id, nom: user.nom, role: user.role } });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.get('/me', async (req, res) => {
@@ -39,13 +46,15 @@ router.get('/me', async (req, res) => {
       [decoded.id]
     );
     res.json(r.rows[0]);
-  } catch(e) { res.status(403).json({ error: 'Invalid token' }); }
+  } catch (e) {
+    res.status(403).json({ error: 'Invalid token' });
+  }
 });
+
 const verifyToken = require('../middleware/auth');
 
-// Admin changes any user's password
+// admin resets another user's password
 router.put('/change-password/:userId', verifyToken, async (req, res) => {
-  // Only admin can change passwords
   if (req.user.role !== 'admin')
     return res.status(403).json({ error: 'Access denied' });
 
@@ -62,10 +71,12 @@ router.put('/change-password/:userId', verifyToken, async (req, res) => {
     if (!result.rows.length)
       return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'Password changed successfully', user: result.rows[0] });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// Admin changes user role
+// admin changes a role
 router.put('/change-role/:userId', verifyToken, async (req, res) => {
   if (req.user.role !== 'admin')
     return res.status(403).json({ error: 'Access denied' });
@@ -82,9 +93,12 @@ router.put('/change-role/:userId', verifyToken, async (req, res) => {
     if (!result.rows.length)
       return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'Role changed successfully', user: result.rows[0] });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
+// admin list of all users + their current site
 router.get('/users-list', verifyToken, async (req, res) => {
   if (req.user.role !== 'admin')
     return res.status(403).json({ error: 'Access denied' });
@@ -100,9 +114,12 @@ router.get('/users-list', verifyToken, async (req, res) => {
        ORDER BY u.id`
     );
     res.json(r.rows);
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
-// Change password by agent_id (finds the user linked to that agent)
+
+// admin resets password by agent_id (resolves users.agent_id -> user row)
 router.put('/change-password-agent/:agentId', verifyToken, async (req, res) => {
   if (req.user.role !== 'admin')
     return res.status(403).json({ error: 'Access denied' });
@@ -120,6 +137,9 @@ router.put('/change-password-agent/:agentId', verifyToken, async (req, res) => {
     if (!result.rows.length)
       return res.status(404).json({ error: 'No user account found for this agent' });
     res.json({ message: 'Password changed', user: result.rows[0] });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
+
 module.exports = router;

@@ -1,3 +1,8 @@
+// Top navigation bar. Subscribes to AuthService.currentUser$ so it can show
+// the current user + the role-appropriate menu items. ChangeDetectorRef is
+// triggered manually because we update state from inside an RxJS subscription,
+// which doesn't run inside Angular's default zone.
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -34,7 +39,6 @@ export class NavbarComponent implements OnInit {
     this.menuOpen = false;
   }
 
-  // Role-based access checks
   isAgent(): boolean {
     return this.user?.role === 'agent';
   }
@@ -58,8 +62,8 @@ export class NavbarComponent implements OnInit {
   getRoleLabel(): string {
     const roleMap: { [key: string]: string } = {
       'agent': 'Agent',
-      'chef_equipe': 'Team Leader',
-      'admin': 'Administrator'
+      'chef_equipe': 'Chef d\'équipe',
+      'admin': 'Administrateur'
     };
     return roleMap[this.user?.role] || this.user?.role;
   }

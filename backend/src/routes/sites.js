@@ -1,3 +1,8 @@
+// Sites endpoints.
+// A "site" is a bank branch (or any place where agents are deployed). Each
+// site has one chef_equipe (users.id) and any number of agents assigned via
+// the affectations table.
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const verifyToken = require('../middleware/auth');
@@ -10,6 +15,8 @@ router.get('/', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/sites/my-sites — sites the current user has access to.
+// Admin sees everything; an agent sees the site they're assigned to.
 router.get('/my-sites', verifyToken, async (req, res) => {
   try {
     if (req.user.role === 'admin') {
@@ -31,7 +38,8 @@ router.get('/my-sites', verifyToken, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET - chefs already assigned to a site (for filtering the dropdown) - must be before /:id
+// GET /api/sites/assigned-chefs — IDs of users who are already managing a site.
+// Used by the site form to prevent assigning the same chef to two sites.
 router.get('/assigned-chefs', verifyToken, role('admin'), async (req, res) => {
   try {
     const r = await pool.query(
@@ -53,7 +61,8 @@ router.post('/', verifyToken, role('admin'), async (req, res) => {
   const { nom, adresse, ville, chef_id } = req.body;
   if (!nom) return res.status(400).json({ error: 'Name is required' });
   try {
-    // Validate: each chef can only be assigned to one site
+    // Business rule: a chef can only manage one site at a time. If `chef_id`
+    // is set, we make sure no other site already uses that user.
     if (chef_id) {
       const existing = await pool.query(
         'SELECT id, nom FROM sites WHERE chef_id = $1',
@@ -76,7 +85,8 @@ router.post('/', verifyToken, role('admin'), async (req, res) => {
 router.put('/:id', verifyToken, role('admin'), async (req, res) => {
   const { nom, adresse, ville, statut, chef_id } = req.body;
   try {
-    // Validate: each chef can only be assigned to one site
+    // Same one-chef-per-site rule as POST, but excluding the current row
+    // so editing a site without changing the chef doesn't self-conflict.
     if (chef_id) {
       const existing = await pool.query(
         'SELECT id, nom FROM sites WHERE chef_id = $1 AND id != $2',

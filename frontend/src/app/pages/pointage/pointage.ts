@@ -21,30 +21,24 @@ export class PointageComponent implements OnInit {
   loading = false;
   saving = false;
 
-  // Stats
   presentCount = 0;
   lateCount = 0;
   absentCount = 0;
   totalAgents = 0;
 
-  // Form
   selectedStatus: 'present' | 'retard' | 'absent' = 'present';
   selectedDate: string = new Date().toISOString().slice(0, 10);
   arrivalTime = '08:00';
   departureTime = '';
 
-  // Day selection
   weekDays: { label: string; short: string; date: string; isToday: boolean }[] = [];
 
-  // Presences
   todayPresences: any[] = [];
 
-  // Monthly grouped data
   currentMonth = new Date().toISOString().slice(0, 7);
   monthlyPresences: any[] = [];
   groupedByDay: { date: string; records: any[] }[] = [];
 
-  // Toast
   toast: { type: 'success' | 'error'; message: string } | null = null;
   private toastTimer: any;
 
@@ -93,7 +87,6 @@ export class PointageComponent implements OnInit {
     this.loading = true;
     this.http.get<any[]>(`${environment.apiUrl}/presences/team-agents`).subscribe({
       next: list => {
-        // Deduplicate agents by id
         const seen = new Set<number>();
         this.agents = (list || []).filter((a: any) => {
           if (seen.has(a.id)) return false;
@@ -114,7 +107,6 @@ export class PointageComponent implements OnInit {
   loadTodayPresences() {
     this.http.get<any[]>(`${environment.apiUrl}/presences/day/${this.selectedDate}`).subscribe({
       next: list => {
-        // Deduplicate by agent id
         const seen = new Set<number>();
         this.todayPresences = (list || []).filter((p: any) => {
           const id = p.id || p.agent_id;

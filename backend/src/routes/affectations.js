@@ -1,8 +1,14 @@
+// Affectations endpoints.
+// An affectation links an agent to a site for a date range. It's the join
+// table that drives who can show up where (and is the source for the
+// pointage page's per-site filter).
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const verifyToken = require('../middleware/auth');
 const role = require('../middleware/roles');
 
+// GET /api/affectations/mes-affectations — the connected agent's own assignments.
 router.get('/mes-affectations', verifyToken, async (req, res) => {
   try {
     const userResult = await pool.query(
@@ -25,6 +31,7 @@ router.get('/mes-affectations', verifyToken, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/affectations — full list (chef_equipe or above).
 router.get('/', verifyToken, role('chef_equipe'), async (req, res) => {
   try {
     const r = await pool.query(

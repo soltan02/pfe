@@ -1,3 +1,7 @@
+// Thin wrapper over the /api/agents endpoints. Components inject this service
+// rather than calling HttpClient directly, so the API base URL is defined
+// in exactly one place.
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';

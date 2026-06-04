@@ -4,7 +4,7 @@ PFE project — gestion des agents de sécurité pour STB.
 
 ## Stack
 
-- Frontend: Angular 19 (standalone components)
+- Frontend: Angular (standalone components)
 - Backend: Node.js + Express
 - DB: PostgreSQL
 - Auth: JWT
@@ -14,34 +14,33 @@ PFE project — gestion des agents de sécurité pour STB.
 ```
 backend/
   src/
-    index.js          — point d'entrée, routes
-    config/db.js      — connexion PostgreSQL
+    index.js          — entry point, routes
+    config/db.js      — PostgreSQL connection
     middleware/
-      auth.js         — vérif JWT
-      roles.js        — RBAC basique
-    routes/           — chaque entité a son fichier
-    controllers/      — logique métier (sites, affectations)
+      auth.js         — JWT verification
+      roles.js        — basic RBAC
+    routes/           — one file per entity, handlers inline
     scripts/          — seed, migrations
 frontend/
   src/app/
-    pages/            — une page par dossier
-    services/         — appels HTTP
+    pages/            — one folder per page
+    services/         — HTTP calls
     components/       — navbar
     guards/           — auth guard
     interceptors/     — token interceptor
 ```
 
-## Rôles
+## Roles
 
-- `agent` — peut voir son profil, ses affectations, créer des demandes
-- `chef_equipe` — gère son équipe, pointage, rapports
-- `admin` — tout gérer (sites, users, agents)
+- `agent` — view profile, assignments, create requests
+- `chef_equipe` — manage team, pointage, reports
+- `admin` — manage everything (sites, users, agents)
 
-Le middleware roles.js compare des niveaux: agent=1, chef=2, admin=3. Donc admin peut tout faire.
+`roles.js` compares numeric levels: agent=1, chef=2, admin=3. Higher levels include lower-level permissions.
 
 ## Pages
 
-| Route | Composant | Rôle |
+| Route | Component | Role |
 |-------|-----------|------|
 | /login | LoginComponent | public |
 | /dashboard | DashboardComponent | all |
@@ -66,27 +65,28 @@ Le middleware roles.js compare des niveaux: agent=1, chef=2, admin=3. Donc admin
 
 ## API
 
-Routes sous `/api/`:
-- auth (login, me, change password)
-- agents (CRUD)
-- sites (CRUD, admin only)
-- affectations (CRUD)
-- presences (pointage)
-- rapports (reports)
-- demandes (tickets/requests)
-- users (profile, password)
+All routes are prefixed with `/api/`:
+
+- `auth` — login, me, change password
+- `agents` — CRUD
+- `sites` — CRUD (admin only)
+- `affectations` — CRUD
+- `presences` — pointage
+- `rapports` — reports
+- `demandes` — tickets/requests
+- `users` — profile, password
 
 ## Auth flow
 
-1. Login → POST /api/auth/login → reçoit JWT
-2. Token stocké dans localStorage
-3. Interceptor ajoute `Authorization: Bearer <token>` à chaque requête
-4. AuthGuard vérifie la présence du token
-5. Sur refresh: AuthService decode token localement (rôle dispo immédiatement) + fetchMe() pour données complètes
+1. Login → `POST /api/auth/login` → returns JWT
+2. Token stored in `localStorage`
+3. Interceptor adds `Authorization: Bearer <token>` to every request
+4. `AuthGuard` checks for the presence of a token
+5. On refresh: `AuthService` decodes the token locally (role is available immediately) and calls `fetchMe()` for full user data
 
 ## Notes
 
-- Les composants sont standalone (pas de NgModules)
-- Les services sont providedIn: 'root'
-- Dashboard utilise ngSwitch pour afficher le bon composant selon le rôle
-- Les scripts de seed sont dans backend/src/scripts/
+- Components are standalone (no NgModules)
+- Services use `providedIn: 'root'`
+- The dashboard shell switches by role using `*ngIf` blocks
+- DB seed and migration scripts live in `backend/src/scripts/`

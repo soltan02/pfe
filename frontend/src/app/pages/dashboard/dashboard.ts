@@ -1,3 +1,7 @@
+// Dashboard shell: a thin role-switcher that renders one of three
+// per-role dashboards. This keeps each role's dashboard self-contained
+// while the routing layer still maps /dashboard to a single component.
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -34,6 +38,8 @@ export class DashboardComponent implements OnInit {
   constructor(private auth: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
+    // Subscribe to currentUser$ so the right dashboard shows up after login
+    // (no role yet) and after a role change (rare in this app but possible).
     this.auth.currentUser$.subscribe(u => {
       this.role = u?.role ?? '';
       this.cdr.detectChanges();

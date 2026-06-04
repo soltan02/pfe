@@ -1,3 +1,12 @@
+// Agents endpoints.
+// An "agent" here is the on-the-ground security staff member; a separate
+// "user" account is created automatically when an agent is added so they can
+// log in (login = matricule, password = matricule by default).
+//
+// Visibility:
+//   - admin sees every agent (and the site + chef for each one)
+//   - chef_equipe only sees agents assigned to their site(s)
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
@@ -47,6 +56,8 @@ router.get(
   }
 );
 
+// GET /api/agents/me/profile — returns the agents row for the connected user.
+// Used by the agent profile page.
 router.get(
   '/me/profile',
   verifyToken,
@@ -111,6 +122,9 @@ router.get(
   }
 );
 
+// POST /api/agents — create an agent + their user account in one shot.
+// When the creator is an admin and they tick "chef_equipe" in the form, the
+// new user is promoted to chef_equipe role.
 router.post(
   '/',
   verifyToken,
@@ -156,6 +170,7 @@ router.post(
 
       const agent = agentResult.rows[0];
 
+      // Default password is the matricule — the agent can change it after login.
       const hash = await bcrypt.hash(
         matricule,
         10
@@ -195,6 +210,9 @@ router.post(
         );
       }
 
+      // If we just created a regular agent under a chef, automatically assign
+      // them to every site that chef manages for the next 3 months. This
+      // keeps the pointage page immediately useful.
       if (userRole === 'agent') {
         const chefSites = await pool.query(
           'SELECT id FROM sites WHERE chef_id = $1',
@@ -213,6 +231,8 @@ router.post(
         }
       }
 
+      // Return the credentials so the frontend can show them to the operator
+      // who is creating the agent (they need to communicate them to the agent).
       res.status(201).json({
         ...agent,
         login_info: {
@@ -286,6 +306,9 @@ router.put(
   }
 );
 
+// DELETE /api/agents/:id — admin only. Cascades to the linked user account
+// and clears any sites.chef_id that pointed at it, so the chef assignment
+// doesn't end up referencing a deleted user.
 router.delete(
   '/:id',
   verifyToken,
@@ -295,24 +318,20 @@ router.delete(
     try {
       const agentId = req.params.id;
 
-      // user lié à cet agent
       const userResult = await pool.query(
         'SELECT id FROM users WHERE agent_id = $1',
         [agentId]
       );
       const userId = userResult.rows[0]?.id;
 
-      // If this user is a chef, remove chef_id references from sites first
       if (userId) {
         await pool.query('UPDATE sites SET chef_id = NULL WHERE chef_id = $1', [userId]);
       }
 
       await pool.query('DELETE FROM users WHERE agent_id = $1', [agentId]);
-
       await pool.query('DELETE FROM affectations WHERE agent_id = $1', [agentId]);
       await pool.query('DELETE FROM presences WHERE agent_id = $1', [agentId]);
 
-      // Finally delete the agent
       const r = await pool.query(
         'DELETE FROM agents WHERE id=$1 RETURNING id',
         [agentId]

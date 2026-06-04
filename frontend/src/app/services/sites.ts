@@ -1,3 +1,7 @@
+// Wrapper over /api/sites.
+// The "my-sites" endpoint returns the subset of sites the current user is
+// allowed to see (all for admins, just their own for agents/chefs).
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';

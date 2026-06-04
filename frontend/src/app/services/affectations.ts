@@ -1,3 +1,8 @@
+// Wrapper over /api/affectations.
+// An affectation is a (agent, site, date range) tuple. There is no PUT here —
+// to change an assignment we delete the old row and POST a new one. That's
+// simpler than tracking an `archived` flag and matches how the UI works.
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';

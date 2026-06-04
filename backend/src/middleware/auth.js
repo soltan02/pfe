@@ -1,3 +1,10 @@
+// JWT verification middleware.
+// Reads the `Authorization: Bearer <token>` header, validates the token with
+// JWT_SECRET, and attaches the decoded payload to `req.user`.
+//
+// Downstream handlers (and the `role()` middleware) read `req.user.role` to
+// decide what the caller is allowed to do.
+
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
@@ -10,6 +17,8 @@ module.exports = (req, res, next) => {
   }
 
   try {
+    // jwt.verify throws if the token is expired, malformed, or signed with a
+    // different secret. Either way we surface a 401 to the caller.
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET

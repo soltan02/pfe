@@ -1,8 +1,13 @@
+// User-self-service endpoints: edit your own profile, change your own password.
+// Admin password/role changes live in routes/auth.js because they target other users.
+
 const router = require('express').Router();
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 const verifyToken = require('../middleware/auth');
 
+// GET /api/users — list of all users (id, nom, email, role). Used by the
+// admin users page and the site form's chef picker.
 router.get('/', verifyToken, async (req, res) => {
   try {
     const r = await pool.query(
@@ -14,6 +19,10 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+// PUT /api/users/profile — update the connected user's own profile.
+// The telephone is stored on the `agents` row (not on `users`), so when the
+// caller is an agent we update both tables. COALESCE keeps the old value if
+// the field is omitted in the request body.
 router.put('/profile', verifyToken, async (req, res) => {
   try {
     const { nom, email, telephone } = req.body;
@@ -46,6 +55,7 @@ router.put('/profile', verifyToken, async (req, res) => {
         'SELECT telephone FROM agents WHERE id = $1',
         [agentId]
       );
+      // Surface the (possibly updated) phone number in the response.
       updatedUser.telephone = agentInfo.rows[0]?.telephone || null;
     }
 
@@ -55,6 +65,8 @@ router.put('/profile', verifyToken, async (req, res) => {
   }
 });
 
+// PUT /api/users/change-own-password — change the connected user's password.
+// Requires the current password as a guard against CSRF / stolen token abuse.
 router.put('/change-own-password', verifyToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;

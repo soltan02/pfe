@@ -1,3 +1,8 @@
+// AuthService — the single source of truth for "who is the current user".
+// Components subscribe to `currentUser$` to react to login/logout/profile
+// changes. The token itself lives in localStorage so a hard refresh keeps
+// the session alive.
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -9,7 +14,7 @@ export class AuthService {
   currentUser$ = new BehaviorSubject<any>(null);
 
   constructor(private http: HttpClient, private router: Router) {
-    // Try to restore user from token on initialization
+    // decode the token sync so role is ready before /me round-trips
     const token = this.getToken();
     if (token) {
       const decoded = this.decodeToken(token);
@@ -23,6 +28,7 @@ export class AuthService {
     return this.http.post(`${environment.apiUrl}/auth/login`, { email, password });
   }
 
+  // full profile fetch (nom, telephone, agent_id, ...)
   fetchMe() {
     this.http.get(`${environment.apiUrl}/auth/me`).subscribe({
       next: (u: any) => {
@@ -45,6 +51,7 @@ export class AuthService {
 
   isLoggedIn() { return !!this.getToken(); }
 
+  // payload only (header.payload.signature)
   private decodeToken(token: string): any {
     try {
       const parts = token.split('.');
