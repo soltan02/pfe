@@ -15,7 +15,7 @@
       <!-- Avatar Section -->
       <section class="card avatar-card">
         <div class="avatar-section">
-          <img [src]="user?.avatar_url || 'assets/default-avatar.png'"
+          <img [src]="getAvatarUrl()"
                alt="Profile picture"
                class="avatar-img" />
           <label class="avatar-upload-btn">

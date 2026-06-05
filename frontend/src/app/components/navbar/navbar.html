@@ -1,7 +1,7 @@
 <nav class="app-navbar">
   <div class="navbar-brand">
     <div class="brand-logo">
-      <img src="assets/stb-logo.png" alt="STB" style="height:32px; object-fit:contain">
+      <img src="assets/stb-logo.png" alt="STB" style="height:32px; width:auto; object-fit:contain">
     </div>
     <div>
       <div class="brand-title">STB Security</div>
@@ -30,7 +30,6 @@
 
     <!-- Agent-specific links -->
     <div *ngIf="isAgent()" class="nav-section">
-      <span class="nav-divider">My Pages</span>
       <a routerLink="/mes-affectations" routerLinkActive="active" (click)="closeMenu()">
         <span class="icon">📋</span>
         My Assignments
@@ -108,13 +107,17 @@
         <span class="icon">📊</span>
         Analytics
       </a>
+      <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">👤</span>
+        My Profile
+      </a>
     </div>
   </div>
 
   <!-- User Info & Logout -->
   <div class="navbar-user" *ngIf="user">
     <div class="avatar-wrapper">
-      <img [src]="user?.avatar_url || 'assets/default-avatar.png'" alt="Avatar" class="nav-avatar" />
+      <img [src]="getAvatarUrl()" alt="Avatar" class="nav-avatar" />
     </div>
     <div class="user-info">
       <span class="user-name">{{ user.nom }}</span>

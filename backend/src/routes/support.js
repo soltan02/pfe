@@ -15,8 +15,8 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     await pool.query(
-      `INSERT INTO demandes (chef_id, type, description, date_creation)
-       VALUES ($1, 'support', $2, NOW())`,
+      `INSERT INTO demandes (agent_id, type, motif, statut, chef_approved, created_at)
+       VALUES ($1, 'support', $2, 'pending', FALSE, NOW())`,
       [req.user.id, message.trim()]
     );
 

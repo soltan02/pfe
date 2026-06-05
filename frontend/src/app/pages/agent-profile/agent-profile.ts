@@ -81,19 +81,30 @@ export class AgentProfileComponent implements OnInit {
     });
   }
 
+  getAvatarUrl(): string {
+    if (this.user?.avatar_url) {
+      const base = environment.apiUrl.replace('/api', '');
+      return base + this.user.avatar_url;
+    }
+    return 'assets/default-avatar.png';
+  }
+
   onAvatarChange(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append('avatar', file);
+    this.loading = true;
     this.http.post(`${environment.apiUrl}/upload/avatar`, formData).subscribe({
       next: (res: any) => {
         if (this.user) this.user.avatar_url = res.avatar_url;
         this.saveSuccess = 'Profile picture updated!';
+        this.loading = false;
         this.auth.fetchMe();
       },
       error: () => {
         this.saveError = 'Failed to upload image.';
+        this.loading = false;
       }
     });
   }

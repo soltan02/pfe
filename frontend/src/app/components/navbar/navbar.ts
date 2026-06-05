@@ -4,6 +4,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -54,6 +55,14 @@ export class NavbarComponent implements OnInit {
 
   isAgentOrAbove(): boolean {
     return this.user?.role === 'agent' || this.isChefOrAdmin();
+  }
+
+  getAvatarUrl(): string {
+    if (this.user?.avatar_url) {
+      const base = environment.apiUrl.replace('/api', '');
+      return base + this.user.avatar_url;
+    }
+    return 'assets/default-avatar.png';
   }
 
   getRoleLabel(): string {
