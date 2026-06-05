@@ -19,6 +19,7 @@ import { RapportsComponent } from './pages/rapports/rapports';
 import { TicketsComponent } from './pages/tickets/tickets';
 import { ChefTicketsComponent } from './pages/chef-tickets/chef-tickets';
 import { AdminTicketsComponent } from './pages/admin-tickets/admin-tickets';
+import { ContactSupportComponent } from './pages/contact-support/contact-support';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -48,5 +49,6 @@ export const routes: Routes = [
   { path: 'chef-tickets', component: ChefTicketsComponent, canActivate: [AuthGuard], data: { allowedRoles: ['chef_equipe', 'admin'] } },
   { path: 'admin-tickets', component: AdminTicketsComponent, canActivate: [AuthGuard], data: { allowedRoles: ['admin'] } },
 
+  { path: 'contact-support', component: ContactSupportComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' }
 ];

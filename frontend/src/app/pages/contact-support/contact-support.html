@@ -1,0 +1,37 @@
+<div class="shell">
+  <div class="page-header">
+    <button routerLink="/dashboard" class="btn-back">← Back</button>
+    <div>
+      <h1>Contact Technical Support</h1>
+      <p class="subtitle">Send a message to the STB administration team.</p>
+    </div>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success">✓ {{ success }}</div>
+  <div *ngIf="error" class="alert alert-error">⚠ {{ error }}</div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="form-group">
+        <label for="message">Your message</label>
+        <textarea
+          id="message"
+          [(ngModel)]="message"
+          placeholder="Describe your issue or request..."
+          maxlength="1000"
+          rows="6"
+          class="form-control"
+        ></textarea>
+        <div class="char-count">{{ message.length }}/1000</div>
+      </div>
+
+      <button
+        class="btn-submit"
+        (click)="submit()"
+        [disabled]="loading || !message.trim() || message.length > 1000"
+      >
+        {{ loading ? 'Sending...' : 'Send Message' }}
+      </button>
+    </div>
+  </div>
+</div>

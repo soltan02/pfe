@@ -12,6 +12,19 @@
 
   <div class="profile-content">
     <div class="left-column">
+      <!-- Avatar Section -->
+      <section class="card avatar-card">
+        <div class="avatar-section">
+          <img [src]="user?.avatar_url || 'assets/default-avatar.png'"
+               alt="Profile picture"
+               class="avatar-img" />
+          <label class="avatar-upload-btn">
+            Change Photo
+            <input type="file" accept="image/*" (change)="onAvatarChange($event)" hidden />
+          </label>
+        </div>
+      </section>
+
       <section class="card profile-info">
         <div class="card-header">
           <h2>Personal Information</h2>

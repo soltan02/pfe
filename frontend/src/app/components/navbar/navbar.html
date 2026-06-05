@@ -1,6 +1,8 @@
 <nav class="app-navbar">
   <div class="navbar-brand">
-    <div class="brand-logo">STB</div>
+    <div class="brand-logo">
+      <img src="assets/stb-logo.png" alt="STB" style="height:32px; object-fit:contain">
+    </div>
     <div>
       <div class="brand-title">STB Security</div>
       <div class="brand-subtitle">Agent Management</div>
@@ -23,7 +25,7 @@
     </a>
     <a *ngIf="isAdmin()" routerLink="/map" routerLinkActive="active" (click)="closeMenu()">
       <span class="icon">🗺️</span>
-      Map
+      Manage Sites
     </a>
 
     <!-- Agent-specific links -->
@@ -36,6 +38,10 @@
       <a routerLink="/tickets" routerLinkActive="active" (click)="closeMenu()">
         <span class="icon">🎫</span>
         My Tickets
+      </a>
+      <a routerLink="/contact-support" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📞</span>
+        Contact Support
       </a>
       <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">
         <span class="icon">👤</span>
@@ -66,6 +72,10 @@
         <span class="icon">➕</span>
         Add Agent
       </a>
+      <a routerLink="/contact-support" routerLinkActive="active" (click)="closeMenu()">
+        <span class="icon">📞</span>
+        Contact Support
+      </a>
       <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">
         <span class="icon">👤</span>
         My Profile
@@ -74,7 +84,6 @@
 
     <!-- Admin-specific links -->
     <div *ngIf="isAdmin()" class="nav-section">
-      <span class="nav-divider">Administration</span>
       <a routerLink="/agents" routerLinkActive="active" (click)="closeMenu()">
         <span class="icon">👤</span>
         Agents
@@ -104,6 +113,9 @@
 
   <!-- User Info & Logout -->
   <div class="navbar-user" *ngIf="user">
+    <div class="avatar-wrapper">
+      <img [src]="user?.avatar_url || 'assets/default-avatar.png'" alt="Avatar" class="nav-avatar" />
+    </div>
     <div class="user-info">
       <span class="user-name">{{ user.nom }}</span>
       <span class="user-role" [class]="user.role">{{ getRoleLabel() }}</span>

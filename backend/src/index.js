@@ -23,6 +23,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (req, res) => {
   res.json({ message: 'STB API running' });
@@ -37,6 +39,8 @@ app.use('/api/presences', require('./routes/presences'));
 app.use('/api/rapports', require('./routes/rapports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/demandes', require('./routes/demandes'));
+app.use('/api/support', require('./routes/support'));
+app.use('/api/upload', require('./routes/upload'));
 
 // dashboard counters — kept here because it touches many tables
 const verifyToken = require('./middleware/auth');

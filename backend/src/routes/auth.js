@@ -36,7 +36,7 @@ router.get('/me', async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const r = await pool.query(
-      `SELECT u.id, u.nom, u.email, u.role, u.agent_id,
+      `SELECT u.id, u.nom, u.email, u.role, u.agent_id, u.avatar_url,
               a.telephone, a.adresse
        FROM users u
        LEFT JOIN agents a ON a.id = u.agent_id

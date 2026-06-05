@@ -68,12 +68,14 @@ router.get('/admin/all', verifyToken, role('admin'), async (req, res) => {
               COALESCE(ag.nom, 'Agent #' || r.agent_id) AS agent_nom,
               s.nom AS site_nom,
               COALESCE(u.nom, 'Unknown') AS chef_nom,
-              cs.nom AS chef_site_nom
+              cs.nom AS chef_site_nom,
+              vu.nom AS valide_par_nom
        FROM rapports r
        LEFT JOIN agents ag ON r.agent_id = ag.id
        LEFT JOIN sites s ON r.site_id = s.id
        LEFT JOIN users u ON r.created_by = u.id
        LEFT JOIN sites cs ON cs.chef_id = r.created_by
+       LEFT JOIN users vu ON r.valide_par = vu.id
        ORDER BY r.date DESC`
     );
     res.json(r.rows);
