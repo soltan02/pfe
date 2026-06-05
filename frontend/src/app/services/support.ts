@@ -10,4 +10,8 @@ export class SupportService {
   sendMessage(message: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/support`, { message });
   }
+
+  getSupportRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/support`);
+  }
 }

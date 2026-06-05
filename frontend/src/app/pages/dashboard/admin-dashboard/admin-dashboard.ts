@@ -19,6 +19,7 @@ export class AdminDashboardComponent implements OnInit {
   recentAffectations: any[] = [];
   recentAgents: any[] = [];
   chefRequests: any[] = [];
+  supportRequests: any[] = [];
   loading = true;
 
   readonly todayLabel = new Date().toLocaleDateString('en-US', {
@@ -50,11 +51,16 @@ export class AdminDashboardComponent implements OnInit {
       this.recentAffectations = (list || []).slice(0, 5);
       this.chefRequests = (list || []).slice(0, 5).map(aff => ({
         id: aff.id,
-        chef_nom: aff.chef_nom || 'Chef d\'équipe',
+        chef_nom: aff.chef_nom || "Chef d'equipe",
         type: 'Affectation',
         description: `${aff.agent_nom} → ${aff.site_nom}`,
         date_creation: aff.date_debut
       }));
+      this.cdr.detectChanges();
+    });
+    // Load support requests for admin
+    this.http.get<any[]>(`${environment.apiUrl}/support`).subscribe(list => {
+      this.supportRequests = (list || []).slice(0, 5);
       this.cdr.detectChanges();
     });
     this.agents.getAll().subscribe(list => {

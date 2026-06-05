@@ -139,5 +139,33 @@
         <button routerLink="/rapports" class="secondary-button">View All Requests</button>
       </div>
     </article>
+
+    <article class="panel support-card">
+      <div class="panel-header">
+        <div>
+          <p class="panel-subtitle">To Process</p>
+          <h2>Support Requests</h2>
+        </div>
+      </div>
+      <div *ngIf="loading" class="loading-state">Loading...</div>
+      <div *ngIf="!loading && supportRequests.length === 0" class="empty-state">
+        <p>No support requests</p>
+      </div>
+      <div *ngIf="!loading && supportRequests.length > 0" class="requests-list">
+        <div *ngFor="let req of supportRequests" class="request-item">
+          <div class="req-header">
+            <strong>{{ req.user_name || req.nom }}</strong>
+            <span class="request-type">{{ req.user_role || 'User' }}</span>
+          </div>
+          <div class="req-details">
+            <span>{{ req.motif }}</span>
+            <span class="req-date">{{ req.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button routerLink="/admin-tickets" class="secondary-button">View All Support Requests</button>
+      </div>
+    </article>
   </section>
 </div>
