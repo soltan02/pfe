@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -17,7 +17,7 @@ export class ContactSupportComponent {
   success = '';
   error = '';
 
-  constructor(private support: SupportService) {}
+  constructor(private support: SupportService, private cdr: ChangeDetectorRef) {}
 
   submit() {
     if (!this.message.trim() || this.message.length > 1000) return;
@@ -30,10 +30,12 @@ export class ContactSupportComponent {
         this.success = 'Your message has been sent to the administrator.';
         this.message = '';
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (e: any) => {
         this.error = e.error?.error || 'Failed to send message. Please try again.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

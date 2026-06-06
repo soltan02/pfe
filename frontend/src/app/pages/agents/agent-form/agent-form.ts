@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -43,7 +43,8 @@ export class AgentFormComponent implements OnInit {
     private agentsService: AgentsService,
     private route: ActivatedRoute,
     private router: Router,
-    private auth: AuthService
+    private auth: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       nom:       ['', [Validators.required, lettersOnly]],
@@ -64,7 +65,7 @@ export class AgentFormComponent implements OnInit {
     if (this.agentId) {
       this.isEdit = true;
       this.agentsService.getById(this.agentId).subscribe({
-        next: (a) => this.form.patchValue(a),
+        next: (a) => { this.form.patchValue(a); this.cdr.detectChanges(); },
         error: () => this.router.navigate(['/agents'])
       });
     }
@@ -96,7 +97,7 @@ export class AgentFormComponent implements OnInit {
   if (this.isEdit) {
     this.agentsService.update(this.agentId, this.form.value).subscribe({
       next: () => this.router.navigate(['/agents']),
-      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; }
+      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; this.cdr.detectChanges(); }
     });
   } else {
     this.agentsService.create(this.form.value).subscribe({
@@ -112,7 +113,7 @@ export class AgentFormComponent implements OnInit {
         );
         this.router.navigate(['/agents']);
       },
-      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; }
+      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; this.cdr.detectChanges(); }
     });
   }
 }

@@ -1,5 +1,5 @@
 // login page. on success: stash token, seed currentUser$, go to /dashboard.
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -19,7 +19,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -43,6 +44,7 @@ export class LoginComponent {
       error: (e: any) => {
         this.error = e.error?.error || 'Connection error';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
