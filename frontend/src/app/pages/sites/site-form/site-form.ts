@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -25,7 +25,8 @@ export class SiteFormComponent implements OnInit {
     private sitesService: SitesService,
     private http: HttpClient,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       nom: ['', Validators.required],
@@ -42,7 +43,7 @@ export class SiteFormComponent implements OnInit {
     if (this.siteId) {
       this.isEdit = true;
       this.sitesService.getById(this.siteId).subscribe({
-        next: (s) => this.form.patchValue(s),
+        next: (s) => { this.form.patchValue(s); this.cdr.detectChanges(); },
         error: () => this.router.navigate(['/sites'])
       });
     }
@@ -57,6 +58,7 @@ export class SiteFormComponent implements OnInit {
               u.role === 'chef_equipe' &&
               (!assignedChefIds.includes(u.id) || (this.isEdit && u.id == this.form.get('chef_id')?.value))
             );
+            this.cdr.detectChanges();
           },
           error: (e) => console.error('Error loading chefs:', e)
         });
@@ -66,6 +68,7 @@ export class SiteFormComponent implements OnInit {
         this.http.get<any[]>(`${environment.apiUrl}/auth/users-list`).subscribe({
           next: (users) => {
             this.chefs = users.filter(u => u.role === 'chef_equipe');
+            this.cdr.detectChanges();
           },
           error: (e2) => console.error('Error loading chefs:', e2)
         });
@@ -82,7 +85,7 @@ export class SiteFormComponent implements OnInit {
 
     action.subscribe({
       next: () => this.router.navigate(['/sites']),
-      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; }
+      error: (e) => { this.error = e.error?.error || 'Error'; this.loading = false; this.cdr.detectChanges(); }
     });
   }
 }

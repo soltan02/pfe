@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -23,7 +23,8 @@ export class RapportsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private auth: AuthService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       agent_id: ['', Validators.required],
@@ -62,6 +63,7 @@ export class RapportsComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}${endpoint}`).subscribe({
       next: (data) => {
         this.rapports = data;
+        this.cdr.detectChanges();
       },
       error: (e) => console.error('Error loading rapports:', e)
     });
@@ -80,6 +82,7 @@ export class RapportsComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}/agents`).subscribe({
       next: (data) => {
         this.agents = data;
+        this.cdr.detectChanges();
       },
       error: (e) => console.error('Error loading agents:', e)
     });
@@ -99,6 +102,7 @@ export class RapportsComponent implements OnInit {
       error: (e) => {
         this.loading = false;
         console.error('Error:', e);
+        this.cdr.detectChanges();
       }
     });
   }
