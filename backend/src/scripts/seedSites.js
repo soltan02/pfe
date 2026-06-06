@@ -65,4 +65,11 @@ async function seed() {
   }
 }
 
-seed();
+// Export the agency list so other scripts (e.g. the Big Data generator) can
+// reuse it without duplicating the branch data. Only auto-run the seed when
+// this file is executed directly.
+module.exports = { stbAgencies };
+
+if (require.main === module) {
+  seed();
+}

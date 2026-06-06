@@ -169,7 +169,6 @@ Easiest method — open a one-off console:
    node src/scripts/seed.js
    node src/scripts/seedSites.js
    node src/scripts/migrateDemandes.js
-   node src/scripts/addChefIdToSites.js
    ```
 3. If a script needs `DATABASE_URL` and `DB_SSL`, the env vars from the component are already injected.
 
