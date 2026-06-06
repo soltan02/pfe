@@ -40,3 +40,9 @@ focus_chain_taskid*.md
 build.log
 build.txt
 *.tsbuildinfo
+
+# Big Data Spark output (generated artifacts)
+bigdata/output/
+bigdata/.ivy2/
+__pycache__/
+*.pyc

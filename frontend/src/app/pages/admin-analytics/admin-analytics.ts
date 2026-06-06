@@ -27,6 +27,15 @@ export class AdminAnalyticsComponent implements OnInit {
   loading = true;
   selectedMetric = 'overview';
 
+  // Big Data analytics
+  bdSummary: any = {};
+  bdAttendanceTrend: any[] = [];
+  bdAbsenteeism: any[] = [];
+  bdIncidents: any[] = [];
+  bdAgentWorkload: any[] = [];
+  bdCoverage: any[] = [];
+  bdLoading = true;
+
   constructor(
     private http: HttpClient,
     private auth: AuthService,
@@ -64,6 +73,36 @@ export class AdminAnalyticsComponent implements OnInit {
       this.rapportPerSite = data?.perSite || [];
       this.loading = false;
       this.cdr.detectChanges();
+    });
+    this.loadBigDataAnalytics();
+  }
+
+  private loadBigDataAnalytics() {
+    this.bdLoading = true;
+    const base = `${environment.apiUrl}/analytics`;
+    this.http.get<any>(`${base}/summary`).subscribe({
+      next: d => { this.bdSummary = d; this.cdr.detectChanges(); },
+      error: () => {}
+    });
+    this.http.get<any[]>(`${base}/attendance-trend`).subscribe({
+      next: d => { this.bdAttendanceTrend = d || []; this.cdr.detectChanges(); },
+      error: () => {}
+    });
+    this.http.get<any[]>(`${base}/absenteeism-by-branch`).subscribe({
+      next: d => { this.bdAbsenteeism = d || []; this.cdr.detectChanges(); },
+      error: () => {}
+    });
+    this.http.get<any[]>(`${base}/incidents-monthly`).subscribe({
+      next: d => { this.bdIncidents = d || []; this.cdr.detectChanges(); },
+      error: () => {}
+    });
+    this.http.get<any[]>(`${base}/agent-workload?limit=10&order=asc`).subscribe({
+      next: d => { this.bdAgentWorkload = d || []; this.cdr.detectChanges(); },
+      error: () => {}
+    });
+    this.http.get<any[]>(`${base}/coverage`).subscribe({
+      next: d => { this.bdCoverage = d || []; this.bdLoading = false; this.cdr.detectChanges(); },
+      error: () => { this.bdLoading = false; }
     });
   }
 

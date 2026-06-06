@@ -243,6 +243,128 @@
     </div>
   </section>
 
+  <!-- ============================================================ -->
+  <!-- BIG DATA INSIGHTS                                            -->
+  <!-- ============================================================ -->
+  <section class="bigdata-section" *ngIf="!bdLoading || bdAttendanceTrend.length > 0">
+    <h2>Big Data Insights</h2>
+    <p class="subtitle">Aggregated from {{ bdSummary.total_presences | number }} attendance records across {{ bdSummary.total_sites }} branches</p>
+
+    <!-- Summary KPI cards -->
+    <div class="metrics-grid" *ngIf="bdSummary.total_presences">
+      <div class="metric-card bigdata">
+        <div class="metric-icon">📊</div>
+        <div class="metric-label">Total Presences</div>
+        <div class="metric-value">{{ bdSummary.total_presences | number }}</div>
+      </div>
+      <div class="metric-card bigdata">
+        <div class="metric-icon">👤</div>
+        <div class="metric-label">Agents Tracked</div>
+        <div class="metric-value">{{ bdSummary.total_agents | number }}</div>
+      </div>
+      <div class="metric-card bigdata">
+        <div class="metric-icon">📈</div>
+        <div class="metric-label">Avg Attendance</div>
+        <div class="metric-value">{{ bdSummary.avg_attendance_rate }}%</div>
+      </div>
+      <div class="metric-card bigdata">
+        <div class="metric-icon">📝</div>
+        <div class="metric-label">Reports Filed</div>
+        <div class="metric-value">{{ bdSummary.total_rapports | number }}</div>
+      </div>
+    </div>
+
+    <!-- Attendance Trend (monthly) -->
+    <div class="bd-panel" *ngIf="bdAttendanceTrend.length > 0">
+      <h3>Monthly Attendance Trend</h3>
+      <div class="chart-container">
+        <div class="bar-chart">
+          <div class="bar-group" *ngFor="let m of bdAttendanceTrend">
+            <div class="bar-stack">
+              <div class="bar present" [style.height.%]="m.attendance_rate" title="Present: {{ m.present }}"></div>
+              <div class="bar late" [style.height.%]="(m.late / m.total * 100)" title="Late: {{ m.late }}"></div>
+              <div class="bar absent" [style.height.%]="(m.absent / m.total * 100)" title="Absent: {{ m.absent }}"></div>
+            </div>
+            <div class="bar-label">{{ m.month | date: 'MMM yy' }}</div>
+            <div class="bar-rate">{{ m.attendance_rate }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Absenteeism by Branch -->
+    <div class="bd-panel" *ngIf="bdAbsenteeism.length > 0">
+      <h3>Absenteeism by Branch (last 12 months)</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Branch</th><th>City</th><th>Records</th>
+            <th>Absences</th><th>Absence %</th><th>Tardiness %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of bdAbsenteeism">
+            <td>{{ b.site_nom }}</td>
+            <td>{{ b.site_ville }}</td>
+            <td>{{ b.total_records | number }}</td>
+            <td>{{ b.total_absences | number }}</td>
+            <td><span class="status-pill" [style.background]="b.absence_rate > 5 ? '#ef4444' : '#10b981'">{{ b.absence_rate }}%</span></td>
+            <td><span class="status-pill" [style.background]="b.tardiness_rate > 7 ? '#fbbf24' : '#10b981'">{{ b.tardiness_rate }}%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Agent Workload (bottom 10 by attendance) -->
+    <div class="bd-panel" *ngIf="bdAgentWorkload.length > 0">
+      <h3>Agents — Lowest Attendance Rate</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Agent</th><th>ID</th><th>Status</th>
+            <th>Present</th><th>Absent</th><th>Late</th><th>Attendance</th><th>Reports</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of bdAgentWorkload">
+            <td>{{ a.agent_nom }} {{ a.agent_prenom }}</td>
+            <td>{{ a.matricule }}</td>
+            <td>{{ a.agent_status }}</td>
+            <td>{{ a.present_days }}</td>
+            <td>{{ a.absent_days }}</td>
+            <td>{{ a.late_days }}</td>
+            <td><span class="status-pill" [style.background]="a.attendance_rate < 80 ? '#ef4444' : a.attendance_rate < 85 ? '#fbbf24' : '#10b981'">{{ a.attendance_rate }}%</span></td>
+            <td>{{ a.total_reports }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Site Coverage -->
+    <div class="bd-panel" *ngIf="bdCoverage.length > 0">
+      <h3>Site Coverage Overview</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Site</th><th>City</th><th>Total Agents</th>
+            <th>Current</th><th>Assignments</th><th>Reports</th><th>Incidents</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of bdCoverage">
+            <td>{{ c.site_nom }}</td>
+            <td>{{ c.site_ville }}</td>
+            <td>{{ c.total_agents_ever }}</td>
+            <td>{{ c.current_agents }}</td>
+            <td>{{ c.total_assignments }}</td>
+            <td>{{ c.total_reports }}</td>
+            <td><span class="status-pill" [style.background]="c.total_incidents > 50 ? '#ef4444' : c.total_incidents > 20 ? '#fbbf24' : '#10b981'">{{ c.total_incidents }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- Export Options -->
   <section class="export-section">
     <h2>Export Full Admin Report</h2>

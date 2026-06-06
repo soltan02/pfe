@@ -41,6 +41,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/demandes', require('./routes/demandes'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // dashboard counters — kept here because it touches many tables
 const verifyToken = require('./middleware/auth');

@@ -330,6 +330,102 @@
   color: #fff;
 }
 
+/* ---------- Big Data Insights ---------- */
+.bigdata-section {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.bigdata-section h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  color: #f8fafc;
+}
+
+.metric-card.bigdata {
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.metric-card.bigdata:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.metric-card.bigdata .metric-value {
+  color: #3b82f6;
+}
+
+.bd-panel {
+  background: rgba(51, 65, 85, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.bd-panel h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: #f8fafc;
+}
+
+/* Simple CSS bar chart */
+.chart-container {
+  overflow-x: auto;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 180px;
+  padding-bottom: 2.5rem;
+  position: relative;
+  min-width: 600px;
+}
+
+.bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 30px;
+}
+
+.bar-stack {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1px;
+}
+
+.bar {
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.bar.present { background: #22c55e; }
+.bar.late    { background: #fbbf24; }
+.bar.absent  { background: #ef4444; }
+
+.bar-label {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.bar-rate {
+  font-size: 0.6rem;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .analytics-shell {
     padding: 1rem;
